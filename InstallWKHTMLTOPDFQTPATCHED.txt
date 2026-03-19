@@ -1,0 +1,33 @@
+# if existing versions of wkhtltopdf, they have to removed
+set -e
+
+echo "🔄 Removing old wkhtmltopdf (if any)..."
+sudo apt remove --purge -y wkhtmltopdf || true
+sudo apt autoremove -y
+
+sudo rm -f /usr/local/bin/wkhtmltopdf
+sudo rm -f /usr/local/bin/wkhtmltoimage
+
+echo "📦 Updating system..."
+sudo apt update
+
+echo "📚 Installing dependencies..."
+echo "⬇️ Downloading wkhtmltopdf (Qt patched)..."
+cd /tmp
+wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+
+echo "📥 Installing wkhtmltopdf..."
+sudo dpkg -i wkhtmltox_0.12.6.1-2.jammy_amd64.deb || true
+
+echo "🔧 Fixing dependencies (if needed)..."
+sudo apt --fix-broken install -y
+
+echo "🔗 Creating symlinks..."
+sudo ln -sf /usr/local/bin/wkhtmltopdf /usr/bin/wkhtmltopdf
+sudo ln -sf /usr/local/bin/wkhtmltoimage /usr/bin/wkhtmltoimage
+
+echo "🧪 Verifying installation..."
+wkhtmltopdf --version
+
+echo "✅ Installation complete!"
+echo "👉 Expected: wkhtmltopdf 0.12.6.1 (with patched qt)"
