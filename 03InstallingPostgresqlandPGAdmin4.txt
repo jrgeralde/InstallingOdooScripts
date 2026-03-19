@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Automated script to install PostgreSQL 18 and pgAdmin 4 on Ubuntu 22.04
+# Please clean unneeded characters using Chatgpt
+
+set -e
+
+echo "Updating system..."
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y wget curl gnupg lsb-release software-properties-common
+
+echo "Adding PostgreSQL repository..."
+curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+
+echo "Installing PostgreSQL 18..."
+sudo apt update
+sudo apt install -y postgresql-18 postgresql-client-18
+
+echo "Starting PostgreSQL service..."
+sudo systemctl enable --now postgresql
+
+echo "Creating PostgreSQL user and database..."
+sudo -i -u postgres psql <<EOF
+CREATE USER postgres WITH PASSWORD 'postgres';
+CREATE DATABASE mydb OWNER postgres;
+GRANT ALL PRIVILEGES ON DATABASE mydb TO postgres;
+\q
+EOF
+
+echo "Adding pgAdmin 4 repository..."
+curl https://www.pgadmin.org/static/packages_pgadmin_org.pub | sudo gpg --dearmor -o /usr/share/keyrings/pgadmin.gpg
+echo "deb [signed-by=/usr/share/keyrings/pgadmin.gpg] https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release -cs) pgadmin4 main" | sudo tee /etc/apt/sources.list.d/pgadmin4.list
+
+echo "Installing pgAdmin 4..."
+sudo apt update
+sudo apt install -y pgadmin4
+
+#echo "Setting up pgAdmin 4 web mode..."
+#sudo /usr/pgadmin4/bin/setup-web.sh
+
+echo "Installation complete!"
+#echo "Access pgAdmin 4 at: http://127.0.0.1/pgadmin4"
+echo "PostgreSQL 18 is running. Use user:postgres and database:postgres."
+
+#TO CHANGE postgres password in command line do the following individually
+#sudo -i -u postgres
+#psql
+#ALTER USER postgres WITH PASSWORD 'postgres';
+#\q
+
