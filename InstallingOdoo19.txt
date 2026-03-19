@@ -1,0 +1,40 @@
+A. Odoo 19 Installation Proper 
+  
+    1. Backup your odoo project by copying it and pasting it in the home/odoo directory
+   
+    2. Open VS Code.
+    3. Open the odoo19 project folder.
+            (In our case its under home/odoo directory)
+    4. Open Terminal
+    5.  Activate the Virtual Environment
+         
+         source .venv/bin/activate
+   
+    6. Check the python version
+ 
+         python --version
+    
+    7. Upgrade PIP
+
+          python -m pip install --upgrade pip
+
+     8. Install the requirements
+
+           pip install -r requirements.txt
+
+
+     (* Note if you encounter an error copy the error the terminal, 
+         In the chat: Please fix the error: <Paste the Error>
+         and send the chat to copilot by clicking the send button 
+         or Paste the error in chatgpt  and perform the recommended solution)
+
+      9. After a successful Installation run odoo in the terminal
+
+             python odoo-bin -c odoo.conf
+
+    10:  In your browser open the url: localhost:8069
+
+    11.  Login with the following credentials
+
+            email:admin
+            password:admin
