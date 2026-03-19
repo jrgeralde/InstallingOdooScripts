@@ -1,0 +1,41 @@
+Guide: Install Python 3.12 on Ubuntu 22
+
+Step 1: Update the system
+Open a terminal and run:
+sudo apt update
+sudo apt upgrade
+sudo apt install -y software-properties-common build-essential
+
+Notes:
+- software-properties-common → lets you add PPA repositories
+- build-essential → includes compilers needed to build Python from source
+
+Step 2: Add the deadsnakes PPA
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+(This PPA provides newer Python versions for Ubuntu)
+
+Step 3: Install Python 3.12
+sudo apt update
+sudo apt install -y python3.12 python3.12-venv python3.12-dev
+
+
+Step 4: Verify the installation
+python3.12 --version
+(Expected output: Python 3.12.x)
+
+Step 5. Add to your Path
+  nano ~/.bashrc
+
+Add this line to the end
+export PATH="$HOME/.local/bin:$PATH"
+
+Exit by pressing Ctrl X and confirm the changes
+
+Reload the Shell
+source ~/.bashrc
+
+Step 6: Set up pip for Python 3.10 and 3.12
+sudo apt install python3 pip
+sudo apt install python3.12 pip
+
