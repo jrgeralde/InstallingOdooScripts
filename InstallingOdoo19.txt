@@ -6,7 +6,7 @@ A. Odoo 19 Installation Proper
     3. Open the odoo19 project folder.
             (In our case its under home/odoo directory)
     4. Open Terminal
-    5.  Activate the Virtual Environmen, if none, create it by: python -m venv .venv
+    5.  Activate the Virtual Environmen, if none, create it by: python3.12 -m venv .venv
          
          source .venv/bin/activate
    
