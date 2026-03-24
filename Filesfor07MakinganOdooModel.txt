@@ -1,0 +1,84 @@
+#--------Addons Path in odoo.conf
+
+addons_path = addons,odoo/addons,mukwebthemeaddon,myaddons
+
+
+# --------------------------------------------------------------
+#  myaddons/hotel/__init__.py
+# --------------------------------------------------------------
+
+from . import models
+
+
+# --------------------------------------------------------------
+#  myaddons/hotel/models/__init__.py
+# --------------------------------------------------------------
+
+from . import hotelcompany
+
+
+# --------------------------------------------------------------
+#  myaddons/hotel/models/hotelcompany.py
+# --------------------------------------------------------------
+
+from odoo import models, fields
+
+class HotelCompany(models.Model):
+    _inherit = 'res.company'  
+
+    nextgrcno = fields.Integer(string="Next GRC No", default = 1)
+    nextrcno = fields.Integer(string="Next RC No", default = 1)
+    nextdmno = fields.Integer(string="Next DM No", default = 1)
+    nextcmno = fields.Integer(string="Next CM No", default = 1)
+    nextprno = fields.Integer(string="Next PR No", default = 1) 
+
+# --------------------------------------------------------------
+#  myaddons/hotel/__manifest__.py
+# --------------------------------------------------------------
+
+{
+    'name': "hotel",
+    'summary': "Hotel Management System",
+    'description': "Hotel Guest Registration and Billing System",
+    'author': "ROYTEK",
+    'website': "https://www.roytek.odoo.com",
+
+    'category': 'Uncategorized',
+    'version': '19.0.1.4.0',
+
+    'depends': ['base', 'web'],
+
+    'license': 'LGPL-3',
+
+    # Always loaded data
+    'data': [
+            'views/mainmenu.xml',
+       
+    ],
+
+    'installable': True,
+    'application': True,
+}
+
+
+# --------------------------------------------------------------
+#  myaddons/hotel/views/mainmenu.xml
+# --------------------------------------------------------------
+
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- Top menu item -->
+  <menuitem name="Hotel System" id="menu_hotel_root" />
+  <!-- menu categories -->
+  <menuitem 
+    name="Guest Registrations" 
+    id="menu_hotel_guestregistration_list"
+    parent="menu_hotel_root"
+    sequence="10"/>
+
+  <menuitem 
+    name="Master Lists" 
+    id="menu_hotel_masterlists" 
+    parent="menu_hotel_root"
+    sequence="20"/>
+</odoo>
