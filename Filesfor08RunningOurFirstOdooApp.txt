@@ -1,0 +1,151 @@
+#-----------------------------------------------------------------------------------
+# myaddons/hotel/models/charges.py - stores guest charges
+#-----------------------------------------------------------------------------------
+
+# -*- coding: utf-8 -*-
+
+from odoo import models, fields
+
+class charges(models.Model):
+    _name = 'hotel.charges'
+    _description = 'hotel charges/accounts master list'
+    _order="name"
+    
+
+    name = fields.Char("Account Name")
+    description = fields.Char("Account Description")
+    paymentaccount= fields.Boolean("Payment Account", default=False)
+    
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        required=True,
+        index=True,
+        default=lambda self: self.env.company,  # auto-assign current user's company
+    )
+
+#-----------------------------------------------------------------------------------
+# myaddons/hotel/models/__init__.py
+#-----------------------------------------------------------------------------------
+
+from . import hotelcompany
+from . import charges
+
+#-----------------------------------------------------------------------------------
+# myaddons/hotel/security/ir.model.access.csv
+#-----------------------------------------------------------------------------------
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hotel_charges,hotel.charges,model_hotel_charges,base.group_user,1,1,1,1
+access_hotel_documents,hotel.documents,model_hotel_documents,base.group_user,1,1,1,1
+
+#-----------------------------------------------------------------------------------
+# myaddons/hotel/views/charges.xml
+#-----------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <!-- explicit list view definition -->
+    <record model="ir.ui.view" id="view_hotel_charges_list">
+    <field name="name">Charges/Accounts Master List</field>
+    <field name="model">hotel.charges</field>
+    <field name="arch" type="xml">
+      <list>
+        <field name="name"/>
+        <field name="description"/>      
+        <field name="paymentaccount"/>        
+      </list>
+    </field>
+  </record>
+
+    <!-- explicit form view definition -->
+  <record model="ir.ui.view" id="view_hotel_charges_form">
+    <field name="name">Hotel Charge</field>
+    <field name="model">hotel.charges</field>
+    <field name="arch" type="xml">
+      <form>
+        <sheet>
+        <group>
+          <field name="name"/>
+        </group>
+        <group>
+          <field name="description"/>      
+        </group>
+        <group>
+          <field name="paymentaccount"/>      
+        </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- actions opening views on models -->
+  <record model="ir.actions.act_window" id="action_hotel_charges">
+    <field name="name">Hotel Charges and Accounts</field>
+    <field name="res_model">hotel.charges</field>
+    <field name="view_mode">list,form</field>
+  </record>
+
+  <!-- make root app menu open a concrete action -->
+  <record model="ir.ui.menu" id="menu_hotel_root">
+    <field name="action" ref="action_hotel_charges"/>
+  </record>
+ <!-- menu item for charges cruds -->
+  <menuitem 
+    name="Charges and Accounts" id="menu_hotel_charges" 
+    parent="menu_hotel_masterlists"
+    action="action_hotel_charges" 
+    sequence="4"/>
+ </odoo>
+
+#-----------------------------------------------------------------------------------
+# myaddons/hotel/views/mainmenu.xml
+#-----------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- Top menu item -->
+  <menuitem name="Hotel System" id="menu_hotel_root" web_icon="hotel,static/description/icon.png" sequence="10"/>
+  <!-- menu categories -->
+  <menuitem 
+    name="Guest Registrations" 
+    id="menu_hotel_guestregistration_list"
+    parent="menu_hotel_root"
+    sequence="10"/>
+
+  <menuitem 
+    name="Master Lists" 
+    id="menu_hotel_masterlists" 
+    parent="menu_hotel_root"
+    sequence="20"/>
+</odoo>
+
+
+#-----------------------------------------------------------------------------------
+# myaddons/hotel/__manifest__.py
+#-----------------------------------------------------------------------------------
+# -*- coding: utf-8 -*-
+{
+    'name': "hotel",
+    'summary': "Hotel Management System",
+    'description': "Hotel Guest Registration and Billing System",
+    'author': "ROYTEK",
+    'website': "https://www.roytek.odoo.com",
+
+    'category': 'Uncategorized',
+    'version': '19.0.1.4.0',
+
+    'depends': ['base', 'web'],
+
+    'license': 'LGPL-3',
+
+    # Always loaded data
+    'data': [
+        'security/ir.model.access.csv',
+        'views/mainmenu.xml',
+        'views/charges.xml',       
+    ],
+
+    'installable': True,
+    'application': True,
+}
+
+    
