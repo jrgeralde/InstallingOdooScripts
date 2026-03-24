@@ -1,0 +1,96 @@
+#------------------------------------------------------------------------------------------------------------
+# myaddons/hotel/models/rooms.py - hotel roomtypes, rooms and daily charges
+#-------------------------------------------------------------------------------------------------------------
+
+# -*- coding: utf-8 -*-
+
+from odoo import models, fields, api
+
+#roomtypes model 
+
+class roomtypes(models.Model):
+    _name = 'hotel.roomtypes'
+    _description = 'hotel roomtypes master list'
+    _order="name"
+
+    name = fields.Char("Room Type Name")
+    description = fields.Char("Room Type Description")
+    pax = fields.Char("PAX")
+    imageroom = fields.Image("Room");
+    imagebathroom  = fields.Image("Bath Room")
+
+    dailyrate = fields.Float("Daily Rate", digits=(10,2))
+    weekendrate = fields.Float("Weekend Rate", digits=(10,2))
+
+    room_ids=fields.One2many('hotel.rooms','roomtype_id', string='Rooms')    
+    dailycharges_ids=fields.One2many('hotel.dailycharges','roomtype_id', string='Daily Charges')
+
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        required=True,
+        index=True,
+        default=lambda self: self.env.company,  # auto-assign current user's company
+    )
+
+#daily charges model per room type  
+
+class dailycharges(models.Model):
+    _name = 'hotel.dailycharges'
+    _description = 'hotel roomtype daily charges list'
+    
+    charge_id = fields.Many2one('hotel.charges',string="Charge Title")
+    amount = fields.Float("Daily Amount", digits=(10,2))
+    roomtype_id = fields.Many2one('hotel.roomtypes', string="Roomtype")    
+
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        required=True,
+        index=True,
+        default=lambda self: self.env.company,  # auto-assign current user's company
+    )
+
+#rooms model
+
+class rooms(models.Model):
+    _name = 'hotel.rooms'
+    _description = 'hotel rooms master list'
+    _order="name"
+
+    name = fields.Char("Room No")
+    description = fields.Char("Room Description")
+    
+    roomtype_id = fields.Many2one('hotel.roomtypes', string="Room Type")
+    
+    roomtypename=fields.Char("Room Type",related='roomtype_id.name')
+
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        required=True,
+        index=True,
+        default=lambda self: self.env.company,  # auto-assign current user's company
+    )
+    
+#------------------------------------------------------------------------------------------------------------
+# myaddons/hotel/security/ir.model.access.csv
+#-------------------------------------------------------------------------------------------------------------
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hotel_documents,hotel.documents,model_hotel_documents,base.group_user,1,1,1,1
+access_hotel_charges,hotel.charges,model_hotel_charges,base.group_user,1,1,1,1
+access_hotel_roomtypes,hotel.roomtypes,model_hotel_roomtypes,base.group_user,1,1,1,1
+access_hotel_dailycharges,hotel.dailycharges,model_hotel_dailycharges,base.group_user,1,1,1,1
+access_hotel_rooms,hotel.rooms,model_hotel_rooms,base.group_user,1,1,1,1
+
+#------------------------------------------------------------------------------------------------------------
+# myaddons/hotel/models/__init__.py
+#-------------------------------------------------------------------------------------------------------------
+from . import hotelcompany
+from . import hoteldocuments
+from . import charges
+from . import rooms
+
+
+
+
