@@ -1,0 +1,87 @@
+#--------------------------------------------------------
+# myaddons/hotel/views/roomtypes.xml 
+#--------------------------------------------------------
+
+<?xml version="1.0" encoding="utf-8"?>
+<!-- roomtypes.xml -->
+<odoo>
+  <!-- explicit list view definition -->
+    <record model="ir.ui.view" id="view_hotel_roomtypes_list">
+    <field name="name">Roomtypes Master List</field>
+    <field name="model">hotel.roomtypes</field>
+    <field name="arch" type="xml">
+      <list>
+        <field name="name"/>
+        <field name="description"/>  
+        <field name="dailyrate"/>  
+        <field name="weekendrate"/>  
+        <field name="pax"/>      
+      </list>
+    </field>
+  </record>
+
+  <!-- explicit form view definition -->
+  <record model="ir.ui.view" id="view_hotel_roomtypes_form">
+    <field name="name">Hotel Roomtype</field>
+    <field name="model">hotel.roomtypes</field>
+    <field name="arch" type="xml">
+        <form>
+            <sheet>
+                <group>
+                    <field name="name"/>
+                    <field name="description"/>
+                    <field name="dailyrate"/>
+                    <field name="weekendrate"/>
+                    <field name="pax"/> 
+                </group>    
+            </sheet>
+        </form>
+    </field>
+  </record>  
+
+    <!-- actions opening views on models -->
+  <record model="ir.actions.act_window" id="action_hotel_roomtypes">
+    <field name="name">Hotel Room Types</field>
+    <field name="res_model">hotel.roomtypes</field>
+    <field name="view_mode">list,form</field>
+  </record>
+
+ 
+ <!-- menu item for roomtypes cruds -->
+  <menuitem 
+    name="Room Types" id="menu_hotel_roomtypes" 
+    parent="menu_hotel_masterlists"
+    action="action_hotel_roomtypes"
+    sequence="3"/>
+</odoo>
+
+#--------------------------------------------------------
+# myaddons/hotel/__manifest__.py
+#--------------------------------------------------------
+# -*- coding: utf-8 -*-
+{
+    'name': "hotel",
+    'summary': "Hotel Management System",
+    'description': "Hotel Guest Registration and Billing System",
+    'author': "ROYTEK",
+    'website': "https://www.roytek.odoo.com",
+
+    'category': 'Uncategorized',
+    'version': '19.0.1.4.0',
+
+    'depends': ['base', 'web'],
+
+    'license': 'LGPL-3',
+
+    # Always loaded data
+    'data': [
+        'security/ir.model.access.csv',
+        'views/mainmenu.xml',
+        'views/roomtypes.xml',       
+        'views/charges.xml', 
+
+    ],
+
+    'installable': True,
+    'application': True,
+}
