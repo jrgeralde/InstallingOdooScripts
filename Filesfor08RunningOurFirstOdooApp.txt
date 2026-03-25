@@ -85,10 +85,6 @@ access_hotel_documents,hotel.documents,model_hotel_documents,base.group_user,1,1
     <field name="view_mode">list,form</field>
   </record>
 
-  <!-- make root app menu open a concrete action -->
-  <record model="ir.ui.menu" id="menu_hotel_root">
-    <field name="action" ref="action_hotel_charges"/>
-  </record>
  <!-- menu item for charges cruds -->
   <menuitem 
     name="Charges and Accounts" id="menu_hotel_charges" 
