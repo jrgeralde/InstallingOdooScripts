@@ -16,7 +16,7 @@ class roomtypes(models.Model):
     name = fields.Char("Room Type Name")
     description = fields.Char("Room Type Description")
     pax = fields.Char("PAX")
-    imageroom = fields.Image("Room");
+    imageroom = fields.Image("Room")
     imagebathroom  = fields.Image("Bath Room")
 
     dailyrate = fields.Float("Daily Rate", digits=(10,2))
