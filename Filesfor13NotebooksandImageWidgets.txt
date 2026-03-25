@@ -1,0 +1,80 @@
+<odoo>
+
+  <!-- LIST VIEW -->
+  <record model="ir.ui.view" id="view_hotel_roomtypes_list">
+    <field name="name">Roomtypes Master List</field>
+    <field name="model">hotel.roomtypes</field>
+    <field name="arch" type="xml">
+      <list>
+        <field name="name"/>
+        <field name="description"/>  
+        <field name="dailyrate"/>  
+        <field name="weekendrate"/>  
+        <field name="pax"/>      
+      </list>
+    </field>
+  </record>
+
+  <!-- FORM VIEW -->
+  <record model="ir.ui.view" id="view_hotel_roomtypes_form">
+    <field name="name">Hotel Roomtype</field>
+    <field name="model">hotel.roomtypes</field>
+    <field name="arch" type="xml">
+      <form>
+        <sheet>
+          <group>
+            <field name="name"/>
+            <field name="description"/>
+            <field name="dailyrate"/>
+            <field name="weekendrate"/>
+            <field name="pax"/> 
+          </group>  
+
+              
+          <notebook>
+            <!-- First page -->
+            <page string="Images" name="First Page">   
+              <form>
+                  <group>
+                    <field name="imageroom" widget="image"/>  
+                  </group>  
+                  <group>  
+                    <field name="imagebathroom" widget="image"/>  
+                  </group>                     
+                </form>           
+            </page>
+
+            <!-- Second Page -->
+            <page string="Rooms" name="Second Page">              
+            </page>
+
+            <!-- Third Page -->
+            <page string="Daily Charges" name="Third Page">              
+            </page>
+
+          </notebook>
+
+        </sheet>
+      </form>
+    </field>
+  </record>  
+
+  <!-- ACTION -->
+  <record model="ir.actions.act_window" id="action_hotel_roomtypes">
+    <field name="name">Hotel Room Types</field>
+    <field name="res_model">hotel.roomtypes</field>
+    <field name="view_mode">list,form</field>
+  </record>
+
+  <!-- Set Master Lists default action to Room Types -->
+  <!-- Removed: setting action on parent breaks menu grouping -->
+
+  <!-- MENU -->
+  <menuitem 
+    name="Room Types" 
+    id="menu_hotel_roomtypes" 
+    parent="menu_hotel_masterlists"
+    action="action_hotel_roomtypes"
+    sequence="10"/>    
+
+</odoo>
