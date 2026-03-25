@@ -1,0 +1,51 @@
+<odoo>
+
+  <!-- LIST VIEW -->
+  <record model="ir.ui.view" id="view_hotel_rooms_list">
+    <field name="name">Rooms Master List</field>
+    <field name="model">hotel.rooms</field>
+    <field name="arch" type="xml">
+      <list>
+        <field name="name"/>
+        <field name="description"/>  
+        <field name="roomtypename"/>  
+      </list>
+    </field>
+  </record>
+
+  <!-- FORM VIEW -->
+  <record model="ir.ui.view" id="view_hotel_rooms_form">
+    <field name="name">Hotel Rooms</field>
+    <field name="model">hotel.rooms</field>
+    <field name="arch" type="xml">
+      <form>
+        <sheet>
+          <group>
+            <field name="name"/>
+            <field name="description"/>
+            <field name="roomtype_id"/>
+          </group>    
+        </sheet>
+      </form>
+    </field>
+  </record>  
+
+  <!-- ACTION -->
+  <record model="ir.actions.act_window" id="action_hotel_rooms">
+    <field name="name">Hotel Rooms</field>
+    <field name="res_model">hotel.rooms</field>
+    <field name="view_mode">list,form</field>
+  </record>
+
+  <!-- Set Master Lists default action to Room Types -->
+  <!-- Removed: setting action on parent breaks menu grouping -->
+
+  <!-- MENU -->
+  <menuitem 
+    name="Rooms" 
+    id="menu_hotel_rooms" 
+    parent="menu_hotel_masterlists"
+    action="action_hotel_rooms"
+    sequence="5"/>    
+
+</odoo>
