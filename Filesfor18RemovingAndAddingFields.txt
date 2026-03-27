@@ -1,6 +1,7 @@
 (Find my portfolio at: https://johnroygeralde.vercel.app)
 
-============================================================GUIDE: REMOVING FIELDS FROM CUSTOM MODELS AND VIEWS (ODOO 19)
+============================================================
+GUIDE: REMOVING FIELDS FROM CUSTOM MODELS AND VIEWS (ODOO 19)
 ============================================================
 
 Since you are working with a custom model and view (not inheriting from Odoo's 
