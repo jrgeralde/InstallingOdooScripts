@@ -1,0 +1,21 @@
+
+    age = fields.Integer(string='Age', compute='_compute_age')
+    @api.depends('birthdate')
+    def _compute_age(self):
+        today = date.today()
+
+        for rec in self:
+            if rec.birthdate:
+                birthdate = fields.Date.from_string(rec.birthdate)
+
+                rec.age = (
+                    today.year
+                    - birthdate.year
+                    - (
+                        (today.month, today.day)
+                        < (birthdate.month, birthdate.day)
+                    )
+                )
+            else:
+                rec.age = 0
+              
