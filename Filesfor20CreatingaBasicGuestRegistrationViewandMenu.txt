@@ -1,0 +1,276 @@
+#----------------------------------------------------------------------
+# myaddons/hotel/views/guestregistration.xml
+#----------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+ <!-- List View -->
+    <record id="view_hotel_guestregistration_list" model="ir.ui.view">
+        <field name="name">hotel.guestregistration.list</field>
+        <field name="model">hotel.guestregistration</field>
+        <field name="arch" type="xml">
+            <list string="Guest Registrations">
+                <field name="room_id"/>
+                <field name="roomtname"/>
+                <field name="guest_id"/>      
+                <field name="state"/>   
+                <field name="datefromsched"/>   
+                <field name="datetosched"/>                
+                <field name="actualpax"/>
+            </list>
+        </field>
+    </record>
+
+       <!-- actions opening views on models -->
+  <record model="ir.actions.act_window" id="action_hotel_active_guestregistration">
+    <field name="name">Hotel Guest Registration</field>
+    <field name="res_model">hotel.guestregistration</field>
+    <field name="view_mode">list</field>
+  </record>
+
+  <menuitem 
+      name="Active Guest Registrations" 
+      id="menu_hotel_active_guestregistration" 
+      parent="menu_hotel_guestregistration_list"
+      action="action_hotel_active_guestregistration" 
+      sequence="20"/>
+
+</odoo>
+
+#----------------------------------------------------------------------
+# myaddons/hotel/views/mainmenu.xml
+#----------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- Top menu item -->
+  <menuitem name="Hotel System" id="menu_hotel_root" web_icon="hotel,static/description/icon.png"/>
+  <!-- menu categories -->
+  <menuitem 
+    name="Guest Registrations" 
+    id="menu_hotel_guestregistration_list"
+    parent="menu_hotel_root"
+    sequence="10"/> 
+
+  <menuitem 
+    name="Master Lists" 
+    id="menu_hotel_masterlists" 
+    parent="menu_hotel_root"
+    sequence="20"/>
+</odoo>
+
+
+#----------------------------------------------------------------------
+# myaddons/hotel/__manifest__.py
+#----------------------------------------------------------------------
+# -*- coding: utf-8 -*-
+{
+    'name': "hotel",
+    'summary': "Hotel Management System",
+    'description': "Hotel Guest Registration and Billing System",
+    'author': "ROYTEK",
+    'website': "https://www.roytek.odoo.com",
+
+    'category': 'Uncategorized',
+    'version': '19.0.1.4.0',
+
+    'depends': ['base', 'web'],
+
+    'license': 'LGPL-3',
+
+    # Always loaded data
+    'data': [
+        'security/ir.model.access.csv',
+        'views/mainmenu.xml',
+        'views/guestregistration.xml',
+        'views/guests.xml',         
+        'views/rooms.xml',         
+        'views/roomtypes.xml',   
+        'views/charges.xml', 
+    
+    ],
+
+    'installable': True,
+    'application': True,
+}
+
+
+#----------------------------------------------------------------------
+# myaddons/hotel/security/ir.model.access.csv
+#----------------------------------------------------------------------
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hotel_charges,hotel.charges,model_hotel_charges,base.group_user,1,1,1,1
+access_hotel_documents,hotel.documents,model_hotel_documents,base.group_user,1,1,1,1
+access_hotel_roomtypes,hotel.roomtypes,model_hotel_roomtypes,base.group_user,1,1,1,1
+access_hotel_dailycharges,hotel.dailycharges,model_hotel_dailycharges,base.group_user,1,1,1,1
+access_hotel_rooms,hotel.rooms,model_hotel_rooms,base.group_user,1,1,1,1
+access_hotel_guests,hotel.guests,model_hotel_guests,base.group_user,1,1,1,1
+access_hotel_guestregistration,hotel.guestregistration,model_hotel_guestregistration,base.group_user,1,1,1,1
+
+
+#----------------------------------------------------------------------
+# myaddons/hotel/views/roomtypes.xml
+#----------------------------------------------------------------------
+<odoo>
+
+  <!-- LIST VIEW -->
+  <record model="ir.ui.view" id="view_hotel_roomtypes_list">
+    <field name="name">Roomtypes Master List</field>
+    <field name="model">hotel.roomtypes</field>
+    <field name="arch" type="xml">
+      <list>
+        <field name="name"/>
+        <field name="description"/>  
+        <field name="pax"/>      
+      </list>
+    </field>
+  </record>
+
+  <!-- FORM VIEW -->
+  <record model="ir.ui.view" id="view_hotel_roomtypes_form">
+    <field name="name">Hotel Roomtype</field>
+    <field name="model">hotel.roomtypes</field>
+    <field name="arch" type="xml">
+      <form>
+        <sheet>
+          <group>
+            <field name="name"/>
+            <field name="description"/>
+            <field name="pax"/> 
+          </group>  
+
+              
+          <notebook>
+            <!-- First page -->
+            <page string="Images" name="First Page">   
+              <form>
+                  <group>
+                    <field name="imageroom" widget="image"/>  
+                  <!-- </group>  
+                  <group>   -->
+                    <field name="imagebathroom" widget="image"/>  
+                  </group>                     
+                </form>           
+            </page>
+
+            <!-- Second Page -->
+            <page string="Rooms" name="Second Page">     
+              <field name="room_ids" create="false" edit="false" readonly="1">
+                <list >
+                 <field name="name"/>  
+                 <field name="description"/>                   
+                </list>
+              </field>                     
+            </page>
+
+            <!-- Third Page -->
+            <page string="Daily Charges" name="Third Page">      
+               <field name="dailycharges_ids">
+                <list editable="bottom">
+                 <field name="charge_id"/>  
+                 <field name="dailyrate"/>
+                 <field name="weekendrate"/>
+                </list>
+              </field>        
+            </page>
+
+          </notebook>
+
+        </sheet>
+      </form>
+    </field>
+  </record>  
+
+  <!-- ACTION -->
+  <record model="ir.actions.act_window" id="action_hotel_roomtypes">
+    <field name="name">Hotel Room Types</field>
+    <field name="res_model">hotel.roomtypes</field>
+    <field name="view_mode">list,form</field>
+  </record>
+
+  <!-- Set Master Lists default action to Room Types -->
+  <!-- Removed: setting action on parent breaks menu grouping -->
+
+  <!-- MENU -->
+  <menuitem 
+    name="Room Types" 
+    id="menu_hotel_roomtypes" 
+    parent="menu_hotel_masterlists"
+    action="action_hotel_roomtypes"
+    sequence="10"/>    
+
+</odoo>
+
+
+#----------------------------------------------------------------------
+# myaddons/hotel/models/room.py - roomtypes, 
+#      daily charges and rooms
+#----------------------------------------------------------------------
+from odoo import models, fields, api
+
+#roomtypes model 
+
+class roomtypes(models.Model):
+    _name = 'hotel.roomtypes'
+    _description = 'hotel roomtypes master list'
+    _order="name"
+
+    name = fields.Char("Room Type Name")
+    description = fields.Char("Room Type Description")
+    pax = fields.Char("PAX")
+    imageroom = fields.Image("Room")
+    imagebathroom  = fields.Image("Bath Room")
+
+    room_ids=fields.One2many('hotel.rooms','roomtype_id', string='Rooms')    
+    dailycharges_ids=fields.One2many('hotel.dailycharges','roomtype_id', string='Daily Charges')
+
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        required=True,
+        index=True,
+        default=lambda self: self.env.company,  # auto-assign current user's company
+    )
+
+#daily charges model per room type  
+
+class dailycharges(models.Model):
+    _name = 'hotel.dailycharges'
+    _description = 'hotel roomtype daily charges list'
+    
+
+    dailyrate = fields.Float("Daily Rate", digits=(10,2))
+    weekendrate = fields.Float("Weekend Rate", digits=(10,2)) 
+    
+    charge_id = fields.Many2one('hotel.charges',string="Charge Title")
+
+    roomtype_id = fields.Many2one('hotel.roomtypes', string="Roomtype")    
+    
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        required=True,
+        index=True,
+        default=lambda self: self.env.company,  # auto-assign current user's company
+    )
+
+#rooms model
+
+class rooms(models.Model):
+    _name = 'hotel.rooms'
+    _description = 'hotel rooms master list'
+    _order="name"
+
+    name = fields.Char("Room No")
+    description = fields.Char("Room Description")
+    
+    roomtype_id = fields.Many2one('hotel.roomtypes', string="Room Type")
+    
+    roomtypename=fields.Char("Room Type Name", related='roomtype_id.name')
+
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        required=True,
+        index=True,
+        default=lambda self: self.env.company,  # auto-assign current user's company
+    )
