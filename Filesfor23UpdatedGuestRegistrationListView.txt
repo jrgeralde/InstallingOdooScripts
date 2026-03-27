@@ -1,0 +1,18 @@
+ <!-- List View -->
+    <record id="view_hotel_guestregistration_list" model="ir.ui.view">
+        <field name="name">hotel.guestregistration.list</field>
+        <field name="model">hotel.guestregistration</field>
+        <field name="arch" type="xml">
+            <list string="Guest Registrations">
+                <field name="grc_id_display"/> 
+                <field name="create_date_ampm"/>
+                <field name="room_id"/>
+                <field name="roomtname"/>
+                <field name="guest_id"/>      
+                <field name="state"/>   
+                <field name="datefromsched_ampm"/>   
+                <field name="datetosched_ampm"/>                
+                <field name="actualpax"/>
+            </list>
+        </field>
+    </record>
