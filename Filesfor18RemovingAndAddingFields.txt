@@ -1,0 +1,57 @@
+(Find my portfolio at: https://johnroygeralde.vercel.app)
+
+============================================================GUIDE: REMOVING FIELDS FROM CUSTOM MODELS AND VIEWS (ODOO 19)
+============================================================
+
+Since you are working with a custom model and view (not inheriting from Odoo's 
+base modules like res.partner or sale.order), the process is straightforward. 
+You simply need to delete the definitions from your files and update the 
+database.
+
+--------------------------------------------------------------------------------
+STEP 1: UPDATE THE PYTHON MODEL (.py)
+--------------------------------------------------------------------------------
+Locate your model file and delete the field declaration. Ensure you also 
+remove any references to this field in constraints, defaults, or computed 
+methods.
+
+Example:
+class MyCustomModel(models.Model):
+    _name = 'my.custom.model'
+    name = fields.Char(string="Name")
+
+    # DELETE THE FIELD BELOW:
+    # old_custom_field = fields.Integer(string="Old Data") 
+
+--------------------------------------------------------------------------------
+STEP 2: CLEAN THE XML VIEW (.xml)
+--------------------------------------------------------------------------------
+In your custom XML file, find the <record> that defines your form, tree, or 
+search view. Delete the <field> tag entirely.
+
+Example:
+<record id="view_my_custom_model_form" model="ir.ui.view">
+    <field name="model">my.custom.model</field>
+    <field name="arch" type="xml">
+        <form>
+            <sheet>
+                <group>
+                    <field name="name"/>
+                    </group>
+            </sheet>
+        </form>
+    </field>
+</record>
+
+!!! CRUCIAL NOTE !!!
+If you delete the field from Python but forget to delete it from the XML, 
+Odoo will crash during the upgrade because the View will try to render a 
+field that no longer exists in the Model.
+
+--------------------------------------------------------------------------------
+STEP 3: APPLY CHANGES
+--------------------------------------------------------------------------------
+For Odoo 19 to register that the field is gone from the UI:
+
+1. Restart your Odoo Service.
+2. Go to Apps > Search for your module > Click Upgrade.

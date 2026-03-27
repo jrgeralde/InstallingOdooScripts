@@ -1,0 +1,43 @@
+# -*- coding: utf-8 -*-
+
+#guestregistration.py
+import pytz
+from datetime import datetime
+
+from odoo import models, fields, api
+from odoo.exceptions import ValidationError
+
+
+class guestregistration(models.Model):
+    _name = 'hotel.guestregistration'
+    _description = 'hotel guest registration list'
+    
+    grc_id = fields.Integer(string="GRC #")
+    room_id = fields.Many2one("hotel.rooms", string="Room No.")
+    guest_id = fields.Many2one("hotel.guests", string="Guest Name")
+    
+    #roomname -< related fields found in the model hotel.rooms  
+    roomname=fields.Char("Room No.",related='room_id.name')
+    
+    #roomtname <- room type name found in the model hotel.rooms 
+    # also related to hotel.roomtypes
+    roomtname=fields.Char("Room Type",related='room_id.roomtypename')
+    
+    #guestname <- related field found as a computed field called name in 
+    # the model hotel.guests
+    guestname=fields.Char("Guest Name",related='guest_id.name')
+
+    datefromsched = fields.Datetime('Scheduled Check In', required=True, index=True, copy=False, default=fields.Datetime.now)
+    datetosched = fields.Datetime('Scheduled Check Out', required=True, index=True, copy=False, default=fields.Datetime.now)
+    
+    actualpax = fields.Integer("Actual PAX")
+
+    details=fields.Text("Details")  
+
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        required=True,
+        index=True,
+        default=lambda self: self.env.company,  # auto-assign current user's company
+    )
