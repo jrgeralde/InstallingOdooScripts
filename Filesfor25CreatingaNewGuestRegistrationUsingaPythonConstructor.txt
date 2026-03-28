@@ -1,0 +1,21 @@
+  # in guestregistration.py, append the following code:
+
+  @api.model
+    def create(self, vals_list):
+    # vals_list can be a list of dicts
+        for vals in vals_list:
+            if not vals.get('grc_id'):
+                doctype = 'GRC'
+                cmp_id = self.env.company.id
+
+                self.env.cr.execute("SELECT * FROM public.hotel_fnGetDocno(%s,%s)", (cmp_id,doctype))
+        
+                # Fetch the result
+            
+                result = self.env.cr.fetchone()
+        
+                vals['grc_id'] = result[0] if result else 1
+
+        # Call the super with the list
+        records = super().create(vals_list)
+        return records
