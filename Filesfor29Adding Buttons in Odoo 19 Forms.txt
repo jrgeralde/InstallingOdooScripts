@@ -1,0 +1,24 @@
+
+  	 <button name="action_reserve" 
+                        string="Reserve" 
+                        type="object" 
+                        icon="fa-calendar-check-o"
+                        class="oe_highlight"/>
+
+                    <button name="action_checkin" 
+                        string="Check IN" 
+                        type="object" 
+                        icon="fa-key"
+                        class="oe_highlight"/>
+
+                    <button name="action_checkout" 
+                        string="Check OUT" 
+                        type="object" 
+                        icon="fa-sign-out"
+                        class="oe_highlight"/>
+
+                    <button name="action_cancel" 
+                        string="Cancel Registration" 
+                        type="object" 
+                        icon="fa-times"
+                        class="oe_highlight oe_right"/>  
