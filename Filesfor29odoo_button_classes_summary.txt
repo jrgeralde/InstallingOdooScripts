@@ -1,0 +1,35 @@
+Odoo Button Classes Summary Table
+
+  ------------------------------------------------------------------------------------------------------------------
+  Class Name       Color / Style    Effect                             Typical Use             Notes
+  ----------------       ---------------       ----------------------   --------------------                  -----------
+  oe_highlight     Blue Highlight    Emphasizes main        Confirm, Reserve,    Most
+                                                      workflow                     Approve                    commonly
+                                                                                                                           used in workflows
+
+  btn-primary      Blue                   Main action button     Submit, Save,              Standard
+                                                                                        Check-in                     Bootstrap
+                                                                                                                           primary style                                                                                                                           style
+
+  btn-secondary  Gray                 Neutral action             Cancel, Back             Less emphasis
+
+  btn-success      Green              Positive result             Done, Completed      Indicates success
+
+  btn-danger       Red                  Dangerous action       Delete, Cancel          Warns users permanently          
+
+  btn-warning      Yellow/Orange Warning action           Reset, Reopen         Indicates caution
+
+  oe_link          Text link style      Looks like clickable   View Logs, Open      Minimal Styling
+                                                      text                           Details                      s
+
+  oe_stat_button   Smart button    Icon + counter button  Related records      Used in smart buttons
+                                                          count                     
+
+  oe_inline        Inline style         Places button beside   Generate buttons     Saves space
+                                                    fields                                      
+
+  oe_right         Right-aligned   Moves button to right     Print, Export              Layout control
+
+  oe_left          Left-aligned       Moves button to left       Back buttons             Layout control
+                                                                               
+  ----------------------------------------------------------------------------------------
