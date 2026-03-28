@@ -1,0 +1,12 @@
+    <!-- GuestRegistration.xml Form View -->
+    <record id="view_hotel_guestregistration_form" model="ir.ui.view">
+        <field name="name">hotel.guestregistration.form</field>
+        <field name="model">hotel.guestregistration</field>
+        <field name="arch" type="xml">
+            <form string="Guest Registration">
+
+                <field name="state"/> 
+
+            </form>
+        </field>    
+    </record>
