@@ -1,0 +1,22 @@
+
+    def action_reserve(self):
+        for rec in self:
+            rec.state = "RESERVED"
+
+    def action_checkin(self):
+        for rec in self:
+            rec.state = "CHECKEDIN"
+
+    def action_checkout(self):
+        for rec in self:
+            rec.state = "CHECKEDOUT"
+
+    def action_cancel(self):
+        for rec in self:
+            rec.state = "CANCELLED"
+
+    def action_mark_draft(self):
+        for rec in self:
+            rec.state = "DRAFT"       
+                    
+
