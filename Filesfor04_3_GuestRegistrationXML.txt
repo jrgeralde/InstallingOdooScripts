@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+ <!-- List View -->
+    <record id="view_hotel_guestregistration_list" model="ir.ui.view">
+        <field name="name">hotel.guestregistration.list</field>
+        <field name="model">hotel.guestregistration</field>
+        <field name="arch" type="xml">
+            <list string="Guest Registrations">
+                <field name="grc_id_display"/> 
+                <field name="create_date_ampm"/>
+                <field name="room_id"/>
+                <field name="roomtname"/>
+                <field name="guest_id"/>      
+                <field name="state"/>   
+                <field name="datefromsched_ampm"/>   
+                <field name="datetosched_ampm"/>                
+                <field name="actualpax"/>
+            </list>
+        </field>
+    </record>
+
+        <!-- Form View -->
+    <record id="view_hotel_guestregistration_form" model="ir.ui.view">
+        <field name="name">hotel.guestregistration.form</field>
+        <field name="model">hotel.guestregistration</field>
+        <field name="arch" type="xml">
+            <form string="Guest Registration">
+                <header>
+                    <field name="state" widget="statusbar" nolabel="1"/>
+
+  	                <button name="action_reserve" 
+                        string="Reserve" 
+                        type="object" 
+                        invisible="state != 'DRAFT'"
+                        confirm="Tag registration as RESERVED?"
+                        icon="fa-calendar-check-o"
+                        class="oe_highlight"/>
+
+                    <button name="action_checkin" 
+                        string="Check IN" 
+                        type="object" 
+                        invisible="state == 'CHECKEDIN' or state == 'CHECKEDOUT' or state=='CANCELLED'"
+                        confirm="Tag registration as CHECKED IN?"
+                        icon="fa-key"
+                        class="oe_highlight"/>
+
+                    <button name="action_checkout" 
+                        string="Check OUT" 
+                        type="object" 
+                        invisible="state != 'CHECKEDIN'"
+                        confirm="Tag registration as CHECKED OUT?"
+                        icon="fa-sign-out"
+                        class="oe_highlight"/>
+
+                    <button name="action_cancel" 
+                        string="Cancel Registration" 
+                        type="object" 
+                        confirm="Tag registration as CANCELLED?"
+                        invisible="state != 'DRAFT' and state!= 'RESERVED'"
+                        icon="fa-times"
+                        class="oe_highlight oe_right"/>  
+
+                </header>
+                <sheet>
+                    <group col="3">
+                        <group>
+                            <field name="grc_id_display" string="GRC # " class="fw-bold" readonly="1"/>
+                            <field name="guest_id" string="Guest" readonly="state!='DRAFT'"/>
+                            <field name="room_id" string="Room #" readonly="state!='DRAFT'"/>
+                            <field name="roomtname" string="Room Type" readonly="1"/>
+                            <field name="actualpax" string="Actual PAX" readonly="state!='DRAFT'"/>
+                        </group>
+                        <group>
+                            <field name="create_date_ampm" string="Date" readonly="1"/>
+                            <field name="datefromsched" string="Scheduled Check In" readonly="state!='DRAFT'"/>
+                            <field name="datetosched" string="Scheduled Check Out" readonly="state!='DRAFT'"/>
+                        </group>
+                        <group>
+                            <field name="details" widget="text" colspan="2" readonly="state!='DRAFT'"/>
+                        </group>
+                    </group>
+                </sheet>
+
+    
+
+            </form>
+        </field>    
+    </record>
+
+    <!-- actions opening views on models -->
+    <record model="ir.actions.act_window" id="action_hotel_active_guestregistration">
+    <field name="name">Active Guest Registrations</field>
+    <field name="res_model">hotel.guestregistration</field>
+    <field name="view_mode">list,form</field>
+    <field name="views">[
+       (ref('view_hotel_guestregistration_list'), 'list'),
+       (ref('view_hotel_guestregistration_form'), 'form')
+    ]</field>
+    <field name="domain">[('state','in',['DRAFT','RESERVED','CHECKEDIN'])]</field>
+    <field name="context">{'create': True}</field>  
+    </record>
+
+    <!-- actions opening views on models -->
+    <record model="ir.actions.act_window" id="action_hotel_inactive_guestregistration">
+    <field name="name">Inactive Guest Registrations</field>
+    <field name="res_model">hotel.guestregistration</field>
+    <field name="view_mode">list,form</field>
+    <field name="views">[
+       (ref('view_hotel_guestregistration_list'), 'list'),
+       (ref('view_hotel_guestregistration_form'), 'form')
+    ]</field>
+    <field name="domain">[('state','in',['CHECKEDOUT','CANCELLED'])]</field>
+    <field name="context">{'create': False}</field>  
+    </record>
+
+  <menuitem 
+      name="Active Guest Registrations" 
+      id="menu_hotel_active_guestregistration" 
+      parent="menu_hotel_guestregistration_list"
+      action="action_hotel_active_guestregistration" 
+      sequence="20"/>
+
+  <menuitem 
+      name="Inactive Guest Registrations" 
+      id="menu_hotel_inactive_guestregistration" 
+      parent="menu_hotel_guestregistration_list"
+      action="action_hotel_inactive_guestregistration" 
+      sequence="30"/>      
+
+</odoo>
