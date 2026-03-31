@@ -1,0 +1,281 @@
+#-----------------------------------------------------------------------------
+#   rooombill.py 
+#-----------------------------------------------------------------------------
+from odoo import models, fields, api
+from odoo.exceptions import ValidationError, UserError
+from . import guestregistration, charges, hoteldocuments
+
+class RoomBill(models.Model):
+    _name = 'hotel.roombill'
+    _description = 'Hotel Guest Room Bill'
+    
+    guestregistration_id = fields.Many2one('hotel.guestregistration', string="GRC No.")
+    guestregistration_id_copy = fields.Integer("GRC No.")
+    document_id = fields.Many2one('hotel.documents', string="Source Document") 
+    documentdescription = fields.Char(
+        "Document",
+        related='document_id.description',
+        store=False,
+        readonly=True
+    )
+    documentno = fields.Integer("Number") 
+    charge_id = fields.Many2one('hotel.charges', string="Room Charges")
+    chargename = fields.Char("Account Title", related='charge_id.name', store=False, readonly=True)
+
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        required=True,
+        index=True,
+        default=lambda self: self.env.company,  # auto-assign current user's company
+    )
+    
+    dateapplied = fields.Datetime('Date', required=True, index=True, copy=False, default=fields.Datetime.now,
+        help="Depicts the date when the bill is applied.")
+    
+    dateapplied_fmt = fields.Char(
+       string="Date",
+        compute='_compute_dateapplied_fmt',
+        store=False  # not stored in the database
+    )
+    @api.depends('dateapplied')
+    def _compute_dateapplied_fmt(self):
+       for record in self:
+            if record.dateapplied:
+                # Convert UTC to user timezone
+                user_tz = self.env.user.tz or 'UTC'
+                dt_local = fields.Datetime.context_timestamp(record, record.dateapplied)
+                record.dateapplied_fmt = dt_local.strftime('%m-%d-%y %I:%M')
+#                record.dateapplied_fmt = dt_local.strftime('%m-%d-%Y')
+#                record.dateapplied_fmt = dt_local.strftime('%m-%d-%Y %I:%M %p')
+            else:
+                record.dateapplied_fmt = ""
+
+    amountapplied = fields.Float("Amount",  digits=(12, 2))
+    details = fields.Char("Details")    
+    state = fields.Selection([
+        ('DRAFT','Draft'),
+        ('FINAL','FINAL'),                
+        ('CANCELLED','Cancelled')],
+        string="Status", default="DRAFT"
+    )   
+    rbalance = fields.Float("Amount")
+
+    debitamt = fields.Float("Debit", compute='compute_debit_amount', store=False, digits=(12, 2))
+    @api.depends('state', 'document_id')
+    def compute_debit_amount(self):
+        for rec in self:
+            if rec.state == 'FINAL' and rec.document_id.name in ('DM', 'RC'):
+                rec.debitamt = rec.amountapplied
+            else:
+                rec.debitamt = 0.0
+
+    creditamt = fields.Float("Credit", compute='compute_credit_amount', store=False, digits=(12, 2))
+    @api.depends('state', 'document_id')
+    def compute_credit_amount(self):
+        for rec in self:
+            if rec.state == 'FINAL' and rec.document_id.name in ('CM', 'PR'):
+                rec.creditamt = rec.amountapplied
+            else:
+                rec.creditamt = 0.0
+
+    diffamt = fields.Float(string="Balance", compute='compute_diff')
+    @api.depends('debitamt', 'creditamt')
+    def compute_diff(self):
+        for rec in self:
+            rec.diffamt = rec.debitamt - rec.creditamt 
+
+    diffamt_fmt = fields.Char(string="Balance", compute="_compute_diffamt_fmt")
+    @api.depends('diffamt')
+    def _compute_diffamt_fmt(self):
+        for rec in self:
+            if rec.diffamt < 0:
+                rec.diffamt_fmt = f"({abs(rec.diffamt):,.2f})"
+            else:
+                rec.diffamt_fmt = f"{rec.diffamt:,.2f}"
+
+    def action_delete_roombill(self):
+        for record in self:
+            if record.state != 'CANCELLED':
+                raise UserError("You can only delete records that are CANCELLED.")
+            
+            record.guestregistration_id_copy = record.guestregistration_id
+            record.guestregistration_id=0
+            #record.unlink() 
+
+    def action_save(self):
+        self.ensure_one()
+        
+        if not self.document_id:  
+            raise ValidationError('Please supply a valid document type.')            
+        if not self.charge_id:    
+            raise ValidationError('Please supply a valid Room Charge Account.')            
+        if not self.dateapplied:    
+            raise ValidationError('Please supply a valid Date.')          
+        if not self.amountapplied or self.amountapplied <= 0:    
+            raise ValidationError('Please supply a valid amount')          
+        
+        # Update the current record
+        self.write({
+            'state': self.state,
+            'document_id': self.document_id,
+            'dateapplied': self.dateapplied,
+            'charge_id': self.charge_id,
+            'amountapplied': self.amountapplied,
+            'details': self.details,
+        })
+
+        # Success notification
+        notification_action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Saved',
+                'message': 'Record saved successfully',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+        # Reopen/refresh the same record
+        reopen_action = {
+            'type': 'ir.actions.act_window',
+            'res_model': self._name,
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+        return [notification_action, reopen_action]
+
+    def action_finalize(self):
+        self.ensure_one()
+        
+        if not self.document_id:  
+            raise ValidationError('Please supply a valid document type.')            
+        if not self.charge_id:    
+            raise ValidationError('Please supply a valid Room Charge Account.')            
+        if not self.dateapplied:    
+            raise ValidationError('Please supply a valid Date.')          
+        if not self.amountapplied or self.amountapplied <= 0:    
+            raise ValidationError('Please supply a valid amount')          
+        
+        else:
+            # TODO: Replace with real sequence for document number
+            doctype = self.document_id.name
+            
+            # Call the PostgreSQL function safely
+            #self._cr.execute("SELECT * from public.hotel_fnGetDocno(%s)", (doctype,))
+            docno=0
+            cmp_id=self.env.company.id
+
+            params = (cmp_id,doctype)
+            self.env.cr.execute("SELECT * FROM public.hotel_fnGetDocno(%s,%s)", (cmp_id,doctype))
+        
+            # Fetch the result
+            
+            result = self.env.cr.fetchone()
+            
+            if result:
+                docno=result[0]  # This is the BIGINT returned by your function
+        
+            self.state = "FINAL"
+            self.guestregistration_id_copy=self.guestregistration_id
+            self.write({
+                'state': self.state,
+                'document_id': self.document_id,
+                'dateapplied': self.dateapplied,
+                'charge_id': self.charge_id,
+                'amountapplied': self.amountapplied,
+                'details': self.details,
+                'documentno': docno,
+            })
+
+        notification_action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Saved',
+                'message': 'Record finalized successfully',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+        # Reopen/refresh the same record
+        reopen_action = {
+            'type': 'ir.actions.act_window',
+            'res_model': self._name,
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+        return [notification_action, reopen_action]
+
+    def action_cancel(self):
+        self.ensure_one()
+        self.state = "CANCELLED"
+        self.write({
+            'state': self.state,
+            'document_id': self.document_id,
+            'dateapplied': self.dateapplied,
+            'charge_id': self.charge_id,
+            'amountapplied': self.amountapplied,
+            'details': self.details,
+        
+        })
+
+        notification_action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Saved',
+                'message': 'Record CANCELLED successfully',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+        # Reopen/refresh the same record
+        reopen_action = {
+            'type': 'ir.actions.act_window',
+            'res_model': self._name,
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+        return [notification_action, reopen_action]
+
+#-----------------------------------------------------------------------------
+#   hoteldocuments.py 
+#-----------------------------------------------------------------------------
+
+# -*- coding: utf-8 -*-
+
+from odoo import models, fields, api
+
+class hoteldocuments(models.Model):
+    _name = 'hotel.documents'
+    _description = 'hotel documents'
+    _order = "name"
+    
+    name = fields.Char("Document Name")
+    description = fields.Char("Document Description")
+    # nextno = fields.Integer("Next Value")
+    # roombill_ids=fields.One2many('hotel.roombill','document_id', string='Room Bills')      
+
+#-----------------------------------------------------------------------------
+#   __init__.py 
+#-----------------------------------------------------------------------------
+
+from . import hotelcompany
+from . import charges
+from . import rooms
+from . import guests
+from . import guestregistration
+from . import hoteldocuments
+from . import roombill
+
+
