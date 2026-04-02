@@ -1,0 +1,206 @@
+#----------------------------------------------------------------------------------------------------------
+# actions for reservation, checkin and 
+#check_availability for Check Availability button in guestregistration.py
+#----------------------------------------------------------------------------------------------------------
+def action_check_availability(self):
+        self.ensure_one()  # self is now your 'rec'
+
+        # 1. Validation Checks
+        if not self.guest_id:  
+            raise ValidationError(_('Please supply a valid guest.'))            
+        if not self.room_id: # Usually room_id in Odoo, check your field name   
+            raise ValidationError(_('Please supply a valid Room Number.'))    
+        if not self.datefromsched:    
+            raise ValidationError(_('Please supply a valid Date From Schedule.'))          
+        if not self.datetosched:    
+            raise ValidationError(_('Please supply a valid Date To Schedule.'))          
+        if self.datetosched <= self.datefromsched:    
+            raise ValidationError(_('Invalid Date Range: Check-out must be after Check-in.'))          
+
+        # 2. Database Call
+        pkid = self.id
+        cmp_id = self.env.company.id
+
+        # Using fetchone() is cleaner since the function returns a single row
+        self.env.cr.execute("SELECT rid, rmessage FROM public.hotel_fncheck_registrationconflict(%s,%s)", (pkid, cmp_id))
+        result = self.env.cr.fetchone() 
+
+        if result:
+            result_cnt = result[0]
+            result_msg = result[1]
+
+            if result_cnt == 0:
+                # For a Button Action, use display_notification for the "Success" message
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': ("Availability Check"),
+                        'message': ("The room schedule is available for the selected dates."),
+                        'type': 'success',
+                        'sticky': False,
+                    }
+                }   
+                
+            else:
+                # Use ValidationError for the "Conflict" to block the user
+                raise ValidationError(result_msg)
+        
+        return True
+
+   def action_reserve(self):
+        self.ensure_one()
+
+        if not(self.guest_id):  
+            raise ValidationError('Please supply a valid guest.')            
+        
+        elif not(self.roomname):    
+            raise ValidationError('Please supply a valid Room Number.')    
+        elif not(self.datefromsched):    
+            raise ValidationError('Please supply a valid Date From Schedule.')          
+        elif not(self.datetosched):    
+            raise ValidationError('Please supply a valid Date To Schedule.')          
+        elif (self.datetosched<=self.datefromsched):    
+            raise ValidationError('Invalid Date Range.')          
+        elif fields.Datetime.now() > self.datefromsched:
+            raise ValidationError('Cannot reserve past the scheduled check-in date.')
+        elif fields.Datetime.now() >= self.datetosched:
+            raise ValidationError('Cannot reserve past the scheduled check-out date.')
+        else:
+
+            # 2. Database Call
+            pkid = self.id
+            cmp_id = self.env.company.id
+
+            # Using fetchone() is cleaner since the function returns a single row
+            self.env.cr.execute("SELECT rid, rmessage FROM public.hotel_fncheck_registrationconflict(%s,%s)", (pkid, cmp_id))
+            result = self.env.cr.fetchone() 
+            if result and result[0] == 0:
+                self.state = "RESERVED"
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Availability Check',
+                        'message': 'The room is RESERVED for the selected dates.',
+                        'type': 'success',
+                        'sticky': False,
+                        'next': {'type': 'ir.actions.client', 'tag': 'reload'},
+                    }
+                }
+            else:
+                raise ValidationError(result[1] if result else "Schedule Conflict. Please check room availability for the selected dates.")    
+
+    def action_checkin(self):
+        for rec in self:
+            if not(rec.guest_id):  
+                raise ValidationError('Please supply a valid guest.')            
+          
+            elif not(rec.roomname):    
+                raise ValidationError('Please supply a valid Room Number.')    
+            elif not(rec.datefromsched):    
+                raise ValidationError('Please supply a valid Date From Schedule.')          
+            elif not(rec.datetosched):    
+                raise ValidationError('Please supply a valid Date To Schedule.')          
+            elif (rec.datetosched<=rec.datefromsched):    
+                raise ValidationError('Invalid Date Range.')          
+            elif fields.Datetime.now() < rec.datefromsched:
+                raise ValidationError('Cannot check in before the scheduled check-in date.')
+            elif fields.Datetime.now() >= rec.datetosched:
+                raise ValidationError('Cannot check in past the scheduled check-out date.')
+            else:
+    
+                # 2. Database Call
+                pkid = self.id
+                cmp_id = self.env.company.id
+
+                # Using fetchone() is cleaner since the function returns a single row
+                self.env.cr.execute("SELECT rid, rmessage FROM public.hotel_fncheck_registrationconflict(%s,%s)", (pkid, cmp_id))
+                result = self.env.cr.fetchone() 
+
+                if result and result[0] == 0:
+                    now = fields.Datetime.now()
+                    if rec.datefromsched != now:
+                        rec.datefromsched = now
+                    
+                    self.env.cr.execute("SELECT * FROM public.hotel_fnCheckin(%s,%s)", (pkid,cmp_id,))
+                    rec.state = "CHECKEDIN"
+               
+                    self.env.cr.fetchall()
+
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': 'Check In',
+                            'message': 'Guest has been CHECKED IN successfully.',
+                            'type': 'success',
+                            'sticky': False,
+                            'next': {'type': 'ir.actions.client', 'tag': 'reload'},
+                        }
+                    }
+
+                else:
+                    raise ValidationError(result[1] if result else "Schedule Conflict. Please check room availability for the selected dates.")    
+ 
+#----------------------------------------------------------------------------------------------------------
+# Check Availability button in guestregistration.xml
+#----------------------------------------------------------------------------------------------------------
+
+                    <button name="action_check_availability" 
+                        string="Check Availability" 
+                        type="object" 
+                        invisible="state != 'DRAFT' and state!= 'RESERVED'"
+                        icon="fa-calendar-times"
+                        class="oe_highlight oe_right"/>  
+
+#----------------------------------------------------------------------------------------------------------
+#  PostgreSQL required index
+#----------------------------------------------------------------------------------------------------------
+CREATE INDEX idx_reg_schedule_guestregistration
+ON hotel_guestregistration (company_id,room_id,state);
+
+
+#----------------------------------------------------------------------------------------------------------
+#  PostgreSQL function to Check Registration Conflict
+#----------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION hotel_fnCheck_RegistrationConflict(reg_id BIGINT, cmp_id BIGINT)
+RETURNS TABLE (
+    rid INT,
+    rmessage VARCHAR   
+) AS $$
+DECLARE 
+    v_date_from TIMESTAMP;
+    v_date_to TIMESTAMP;
+    v_room_id BIGINT;
+    v_conflict_exists BOOLEAN;
+BEGIN
+    -- 1. Get the schedule and room for the current registration
+    SELECT room_id, datefromsched, datetosched
+    INTO v_room_id, v_date_from, v_date_to   
+    FROM hotel_guestregistration 
+    WHERE id = reg_id;
+
+    -- 2. Check for conflicts using the OVERLAPS operator
+    -- This checks if any other record for the same room and company 
+    -- overlaps with our time slot.
+    SELECT EXISTS (
+        SELECT 1
+        FROM hotel_guestregistration 
+        WHERE company_id = cmp_id 
+          AND room_id = v_room_id 
+          AND state IN ('RESERVED', 'CHECKEDIN')
+          AND id <> reg_id
+          AND (datefromsched, datetosched) OVERLAPS (v_date_from, v_date_to)
+    ) INTO v_conflict_exists;
+
+    -- 3. Return the result
+    IF v_conflict_exists THEN
+        RETURN QUERY SELECT 1, CAST('Schedule conflict exists!' AS VARCHAR);
+    ELSE
+        RETURN QUERY SELECT 0, CAST('No schedule conflict found' AS VARCHAR);
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
