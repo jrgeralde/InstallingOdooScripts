@@ -150,7 +150,7 @@ def action_check_availability(self):
                     <button name="action_check_availability" 
                         string="Check Availability" 
                         type="object" 
-                        invisible="state != 'DRAFT' and state!= 'RESERVED'"
+                        invisible="state != 'DRAFT'"
                         icon="fa-calendar-check-o"
                         class="oe_highlight oe_right"/>  
 
