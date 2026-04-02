@@ -151,7 +151,7 @@ def action_check_availability(self):
                         string="Check Availability" 
                         type="object" 
                         invisible="state != 'DRAFT' and state!= 'RESERVED'"
-                        icon="fa-calendar-times"
+                        icon="fa-calendar-check-o"
                         class="oe_highlight oe_right"/>  
 
 #----------------------------------------------------------------------------------------------------------
