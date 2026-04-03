@@ -1,0 +1,222 @@
+# ---------------------------------------------------------------------------------------------------------------------------------
+#  myaddons/hotel/wizards/roombillrecord_new.xml - wizard for saving new guests bills
+# ---------------------------------------------------------------------------------------------------------------------------------
+<!-- myaddons/hotel/wizards/hotel_roombillrecord_new_wizard_view.xml -->
+<odoo>
+    <record id="view_hotel_roombillrecord_new_form" model="ir.ui.view">
+        <field name="name">hotel.roombillrecord_new.form</field>
+        <field name="model">hotel.roombillrecord_new</field>
+        <field name="arch" type="xml">
+            <form string="New Bill Record">
+                 <header>
+                      <field name="state" widget="statusbar" nolabel="1" readonly="1"/>
+                 </header>
+                
+                <group class="o_row">
+                    <field name="document_id" />
+                    <field name="documentdescription" readonly="1"/>
+                    <field name="documentno" readonly="1"/>                    
+                </group>
+                <group >
+                    <field name="dateapplied" string="Date"/>
+                </group>
+                <group class="o_row">
+                    <field name="charge_id"/>
+                    <field name="amountapplied"/>
+                </group>
+                <group class="o_row">
+                    <field name="details"/>
+                </group>
+     
+                <footer>
+                    <button name="action_draft_bill" 
+                        string="Draft" 
+                        type="object" 
+                        icon="fa-file-text-o"
+                        class="oe_highlight oe_left"/>
+
+                    <button name="action_final_bill" 
+                        string="Finalize" 
+                        type="object" 
+                        icon="fa-check-circle"                
+                        class="oe_highlight oe_left"/>
+
+                    <span class="me-5"/> <span class="me-5"/> <span class="me-5"/> 
+                    <span class="me-5"/> <span class="me-5"/> <span class="me-5"/> 
+                    <span class="me-5"/> <span class="me-5"/> <span class="me-5"/>                     
+                    <span class="me-5"/> <span class="me-5"/> <span class="me-5"/>    
+
+                    <button name="action_confirm" 
+                        string="Save" 
+                        type="object"
+                        class="btn-primary oe_right" 
+                        confirm="Add a new bill record?"/>
+
+                    <button string="Cancel" 
+                        special="cancel" 
+                        class="btn-secondary oe_right"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Wizard action -->
+    <record id="action_roombillrecord_new_wizard" model="ir.actions.act_window">
+        <field name="name">New Room Bill Record</field>
+        <field name="res_model">hotel.roombillrecord_new</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field> <!-- 👈 makes it a modal -->
+    </record>
+</odoo>
+
+
+# ---------------------------------------------------------------------------------------------------------------------------------
+#  myaddons/hotel/wizards/roombillrecord_edit.xml - wizard for editing guests bills
+# ---------------------------------------------------------------------------------------------------------------------------------
+<!-- myaddons/hotel/wizards/hotel_roombillrecord_edit_wizard_view.xml -->
+<odoo>
+    <record id="view_hotel_roombillrecord_edit_form" model="ir.ui.view">
+        <field name="name">hotel.roombillrecord_edit.form</field>
+        <field name="model">hotel.roombill</field>
+        <field name="arch" type="xml">
+            <form string="Edit Bill Record">
+                <header>
+                    <field name="state" widget="statusbar" readonly="1"/>
+
+                </header>
+                <group class="o_row">
+                    <field name="document_id" readonly="1"/>
+                    <field name="documentdescription" readonly="1"/>
+                    <field name="documentno" readonly="1"/>                    
+                </group>
+                <group >
+                    <field name="dateapplied" string="Date" readonly="state in ['FINAL','CANCELLED']"/>
+                </group>
+                <group class="o_row">
+                    <field name="charge_id" readonly="state in ['FINAL','CANCELLED']"/>
+                    <field name="amountapplied" readonly="state in ['FINAL','CANCELLED']"/>
+                </group>
+                <group class="o_row">
+                    <field name="details" readonly="state in ['FINAL','CANCELLED']"/>
+                </group>
+                <footer>
+
+                    <button name="action_finalize" 
+                        string="Finalize" 
+                        type="object" 
+                        invisible="state != 'DRAFT'"
+                        confirm="Tag bill record as FINAL?"
+                        icon="fa-check"
+                        class="oe_highlight"/>
+
+                    <button name="action_cancel" 
+                        string="Cancel"
+                        type="object" 
+                        invisible="state != 'DRAFT'"
+                        confirm="CANCEL bill record?"
+                        icon="fa-times"
+                        class="oe_highlight"/>
+
+
+                    <span class="me-5"/> <span class="me-5"/> <span class="me-5"/> 
+                    <span class="me-5"/> <span class="me-5"/> <span class="me-5"/> 
+                    <span class="me-5"/> <span class="me-5"/> <span class="me-5"/>                     
+                    <span class="me-5"/> <span class="me-5"/> <span class="me-5"/>    
+
+
+                    <button name="action_save" 
+                        string="Save" 
+                        type="object" 
+                        class="btn-primary"
+                        invisible="state in ['FINAL','CANCELLED']"
+                        />
+                    <button string="Close" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_roombillrecord_edit_wizard" model="ir.actions.act_window">
+        <field name="name">Edit Room Bill Record</field>
+        <field name="res_model">hotel.roombill</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field> <!-- modal -->
+    </record>
+</odoo>
+
+# ---------------------------------------------------------------------------------------------------------------------------------
+#  The myaddons/hotel/views/guestregistration.xml notebook to display guest bills
+# ---------------------------------------------------------------------------------------------------------------------------------
+
+
+                    <notebook>
+                        <page string="Guest Bill">
+                            <header>
+                                <!-- New Wizard Button -->
+                                <button name="%(action_roombillrecord_new_wizard)d"  
+                                    string="New Room Transaction"
+                                    type="action"
+                                    class="btn-primary float-end"
+                                    invisible="state != 'CHECKEDIN'"
+                                    icon="fa-plus"
+                                    context="{'default_guestregistration_id': id}"/>
+                            </header>
+
+                            <field name="roombill_ids">
+                                <list create="false" edit="false" delete="false" readonly="1">
+                                    <header>
+                                        <button name="action_finalize" 
+                                            string="Finalize" 
+                                            type="object" 
+                                            invisible="state != 'DRAFT'"
+                                            confirm="Tag Bill Record as FINAL?"                                           class="oe_highlight"/>
+                                    </header>
+
+                                    <field name="dateapplied_fmt" string="Date"/>
+
+                                    <field name="document_id" string="Document"/>
+                                    <field name="documentno" string="No."/>
+                                    <field name="charge_id" string="Account Title"/>
+                                    <field name="details" string="Details"/>
+                                    <field name="amountapplied"/>
+
+                                    <field name="state"
+                                        decoration-muted="state == 'CANCELLED'"
+                                        decoration-info="state == 'FINAL'"
+                                        decoration-bf="state == 'FINAL'" 
+                                        decoration-warning="state == 'DRAFT'"/>
+                                    
+                                    <field name="debitamt" sum="Total Debit" class="o_list_number"/>
+                                    <field name="creditamt" sum="Total Credit" class="o_list_number"/>
+                                    
+                                    <!-- Formatted Balance -->
+                                    <field name="diffamt" sum="Total Balance"  class="o_list_number"/>
+
+
+
+                                    <!-- Edit button only visible for DRAFT rows -->
+                                    <button name="action_edit_roombill" 
+                                        type="object" 
+                                        icon="fa-edit" 
+                                        title="Edit Room Bill Record"
+                                        invisible="state != 'DRAFT'"
+                                        class="oe_highlight"/> 
+
+                                    
+                                    <!-- Delete button only visible for CANCELLED rows -->
+                                     <button name="action_delete_roombill"
+                                        type="object"
+                                        class="btn" 
+                                        icon="fa-trash"
+                                        title="Delete Record"
+                                        confirm="Delete Record?"
+                                        invisible="state != 'CANCELLED'"/> 
+
+
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+
+
+
