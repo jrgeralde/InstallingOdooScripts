@@ -1,0 +1,181 @@
+# ---------------------------------------------------------------------------------------------------------------------------------
+#  myaddons/hotel/models/roombillrecord_new.py - transient model for saving new guests bills
+# ---------------------------------------------------------------------------------------------------------------------------------
+
+
+from odoo import models, fields
+from odoo.exceptions import ValidationError
+
+
+class RoombillRecordNew(models.TransientModel):
+    _name = 'hotel.roombillrecord_new'
+    _description = 'New Room Bill Record'
+
+    documentno = fields.Integer("Doc. No.")
+    
+    guestregistration_id = fields.Many2one(
+        'hotel.guestregistration',
+        string="GRC",
+        required=True,
+        readonly=True,
+    )
+
+    document_id = fields.Many2one(
+        'hotel.documents',
+        string="Source Document",
+        domain=[('name', '!=', 'GRC')],
+        required=False
+    )
+
+    documentdescription = fields.Char(
+        string="Document",
+        related='document_id.description',
+        readonly=True,
+        store=False
+    )
+
+    documentname = fields.Char(
+        "Document Name",
+        related='document_id.name',
+        store=False,
+        readonly=True
+    )
+
+    charge_id = fields.Many2one(
+        'hotel.charges',
+        string="Account Title",
+        required=False
+    )
+
+    dateapplied = fields.Datetime(
+        'Date',
+        required=False,
+        index=True,
+        copy=False,
+        default=fields.Datetime.now,
+        help="Depicts the date within which the bill is applied."
+    )
+
+    amountapplied = fields.Float(
+        "Amount",
+        digits=(12, 2),
+        required=False
+    )
+
+    details = fields.Char("Details")
+
+    state = fields.Selection([
+        ('DRAFT', 'Draft'),
+        ('FINAL', 'Final'),
+        ('CANCELLED', 'Cancelled')],
+        string="Status",
+        default="DRAFT"
+    )
+
+    company_id = fields.Many2one(
+        'res.company',
+        string="Company",
+        required=True,
+        index=True,
+        default=lambda self: self.env.company,
+    )
+
+    # -----------------------------------
+    # CONFIRM ACTION
+    # -----------------------------------
+
+    def action_confirm(self):
+
+        self.ensure_one()
+
+        # -----------------------------
+        # VALIDATIONS
+        # -----------------------------
+
+        guest_reg_id= self.env.context.get('default_guestregistration_id') or self.guestregistration_id.id  
+      
+    
+        if not self.document_id:  
+            raise ValidationError('Please supply a valid document type.')   
+        
+        elif not self.charge_id:    
+            raise ValidationError('Please supply a valid Account Title.')            
+        elif not self.dateapplied:    
+            raise ValidationError('Please supply a valid Date.')          
+        elif not self.amountapplied or self.amountapplied <= 0:    
+            raise ValidationError('Please supply a valid amount')          
+          
+        else:
+
+            # -----------------------------
+            # CREATE PERMANENT RECORD
+            # -----------------------------
+            
+            doctype = self.documentname
+            cmp_id = self.env.company.id
+
+
+            self.env.cr.execute("SELECT * FROM public.hotel_fnGetDocno(%s,%s)", (cmp_id,doctype))
+        
+            # Fetch the result
+            
+            result = self.env.cr.fetchone()
+        
+            self.documentno = result[0] if result else 1
+
+            self.env['hotel.roombill'].create({
+                'guestregistration_id':guest_reg_id,
+                'guestregistration_id_copy':guest_reg_id,
+                'company_id':self.company_id.id,
+                'state':self.state,
+                'document_id':self.document_id.id,
+                'documentno':self.documentno,
+                'dateapplied':self.dateapplied,
+                'charge_id':self.charge_id.id,
+                'amountapplied':self.amountapplied,
+                'details':self.details,
+            })
+
+            # -----------------------------
+            # SUCCESS NOTIFICATION
+            # -----------------------------
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Saved',
+                    'message': 'Record saved successfully',
+                    'type': 'success',
+                    'sticky': False,
+
+                    # Close wizard after notification
+                    'next': {
+                        'type': 'ir.actions.act_window_close'
+                    }
+                }
+            }
+        
+    def action_draft_bill(self):
+        self.ensure_one()
+        self.state = 'DRAFT'
+        # Return action to stay on the same wizard record
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': self._name,
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
+
+    def action_final_bill(self):
+        self.ensure_one()
+        self.state = 'FINAL'
+        # Return action to stay on the same wizard record
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': self._name,
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
