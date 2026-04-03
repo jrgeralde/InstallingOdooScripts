@@ -1,0 +1,57 @@
+Odoo QWeb Directives Reference
+
+ 1. Data Output - Used to render values from the database or Python context.
+        
+     t-out:
+       
+    The modern standard. Replaces t-esc and t-raw. Safely escapes HTML unless marked as safe.
+
+        <span t-out="record.name"p>
+       
+     t-field:
+
+      Smart rendering. Automatically formats based on field type (currency symbols, date formats, etc.).
+
+ 2. Conditionals- Controls the visibility of elements based on logic.
+        
+      t-if / t-elif / t-else:
+
+      <div t-if="record.state == 'posted'" class="alert-success">Validated</div>
+      <div t-elif="record.state == 'draft'" class="alert-info">Draft</div>
+      <div t-else="" class="alert-danger">Cancelled</div>
+
+3. Loops & Iteration - Iterate over recordsets or lists.
+
+     t-foreach & t-as
+
+     Inside the loop, you gain access to var_index, var_first, var_last, etc.        
+
+   <ul>
+        <li t-foreach="record.line_ids" t-as="line">
+            <span t-out="line_index + 1"/>. <span t-field="line.name"/>
+       </li>
+    </ul>
+
+4. Dynamic Attributes - Inject logic into standard HTML attributes.
+
+     t-att-$name:    Creates a single attribute.
+
+     <img t-att-src="'/web/image/hotel.room/' + room.id + '/image_128'"/>
+    
+    t-attf-$name: The "format" version for mixing strings and variables.
+
+    <div t-att="{'class': 'my-class', 'data-id': record.id}"/>
+
+5. Logic & Scoping - Control template variables and call other templates.
+        
+    t-set & t-value: Assigns a value to a variable within the current scope.
+
+    <t t-set="tax_rate" t-value="record.amount_tax / record.amount_untaxed"/>
+
+   t-call: Includes another template. Essential for reports.
+
+    <t t-call="web.external_layout">
+        <div class="page">...</div>
+    </t>
+
+</html>
