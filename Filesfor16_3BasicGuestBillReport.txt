@@ -1,0 +1,95 @@
+#----------------------------------------------------------------------------------------------------------------------------------------------------
+#  myaddons/hotel/reports/guestbill.xml   - The Basic Guest Bill Report
+#----------------------------------------------------------------------------------------------------------------------------------------------------
+
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="report_guestbill">
+            <t t-call="web.html_container">
+                <t t-call="web.basic_layout">
+
+                    <t t-foreach="docs" t-as="o">
+                        <div class="page">   
+                            <table class="table table-borderless mymp0-0" style="width:100%; table-layout: fixed; border-collapse: collapse;">
+                                <thead class="mydblline">
+                                    <th class="text-center mymp0-0 mytbw-40 mylbl-10"> <strong>LN#</strong></th>
+                                    <th class="text-start mymp0-0 mytbw-90 mylbl-10"> <strong>Date</strong></th>
+                                    <th class="text-start mymp0-0 mytbw-40 mylbl-10"> <strong>Doc</strong></th>
+                                    <th class="text-center mymp0-0 mytbw-60 mylbl-10"><strong>No.</strong></th>
+                                    <th class="text-start mymp0-0 mytbw-150 mylbl-10"><strong>Account Title</strong></th>
+                                    <th class="text-start mymp0-0 mytbw-150 mylbl-10"><strong>Details</strong></th>
+                                    <th class="text-center mymp0-0 mytbw-125 mylbl-10"><strong>Amount</strong></th>
+                                    <th class="text-start mymp0-0 mytbw-50 mylbl-10"><strong>Status</strong></th>
+                                    <th class="text-end mymp0-0 mytbw-75 mylbl-10"><strong>Debit</strong></th>
+                                    <th class="text-end mymp0-0 mytbw-75 mylbl-10"><strong>Credit</strong></th>
+                                    <th class="text-end mymp0-0 mytbw-75 mylbl-10"><strong>Balance</strong></th>
+                                </thead>   
+                                <tbody>   
+                                    <t t-set="ptotal_debit" t-value="0"/>
+                                    <t t-set="ptotal_credit" t-value="0"/>
+                                    <t t-set="ptotal_balance" t-value="0"/> 
+                                    <t t-set="grunning_balance" t-value="0"/>
+
+                                    <t t-foreach="o.roombill_ids" t-as="line">
+
+
+                                        <t t-set="ptotal_debit" t-value="ptotal_debit + line.debitamt"/>
+                                        <t t-set="ptotal_credit" t-value="ptotal_credit + line.creditamt"/>
+                                        <t t-set="ptotal_balance" t-value="ptotal_balance + line.diffamt"/>
+                                        <t t-set="grunning_balance" t-value="grunning_balance + line.diffamt"/>
+
+                                        <tr style="height:15px !important;">
+                                            <td class="text-center mymp0-0 mytbw-40 mylbl-10"><t t-out="line_index + 1"/></td>
+                                            <td class="text-start mymp0-0 mytbw-90 mylbl-10"><span t-field="line.dateapplied_fmt"/></td>
+                                            <td class="text-start mymp0-0 mytbw-40 mylbl-10"><span t-field="line.document_id"/></td>
+                                            <td class="text-center mymp0-0 mytbw-60 mylbl-10"><span t-field="line.documentno"/></td>
+                                            <td class="text-start mymp0-0 mytbw-150 mylbl-10"><span t-field="line.charge_id"/></td>
+                                            <td class="text-start mymp0-0 mytbw-150 mylbl-10"><span t-field="line.details"/></td>
+                                            <td class="text-center mymp0-0 mytbw-125 mylbl-10"><span t-field="line.amountapplied"/></td>
+                                            <td class="text-start mymp0-0 mytbw-50 mylbl-10"><span t-field="line.state"/></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><span t-field="line.debitamt"/></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><span t-field="line.creditamt"/></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><span t-field="line.diffamt_fmt"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="mydblline">
+                                        <td colspan="8" class="text-end mymp0-0 mylbl-10"><strong>Page Total</strong></td>
+                                        <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-esc="'{:,.2f}'.format(ptotal_debit)"/></strong></td>
+                                        <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-esc="'{:,.2f}'.format(ptotal_credit)"/></strong></td>
+                                        <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-esc="'({:,.2f})'.format(abs(ptotal_balance)) if ptotal_balance &lt; 0 else '{:,.2f}'.format(ptotal_balance)"/></strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="10" class="text-end mymp0-0 mylbl-10"><strong>Running Balance</strong></td>
+                                        <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-esc="'({:,.2f})'.format(abs(grunning_balance)) if grunning_balance &lt; 0 else '{:,.2f}'.format(grunning_balance)"/></strong></td>
+                                    </tr>
+
+
+                                    <t t-set="ptotal_debit" t-value="0"/>
+                                    <t t-set="ptotal_credit" t-value="0"/>
+                                    <t t-set="ptotal_balance" t-value="0"/>
+                                </tfoot>    
+                            </table>
+                        </div>
+
+                    </t>
+                </t>
+            </t>
+        </template>
+
+        <record id="action_report_bill" model="ir.actions.report">
+            <field name="name">Guest Bill</field>
+            <field name="model">hotel.guestregistration</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">hotel.report_guestbill</field>
+            <field name="report_file">hotel.report_guestbill</field>
+            <field name="print_report_name">'GRC%06d' % object.grc_id</field>
+            <field name="binding_model_id" ref="model_hotel_guestregistration"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="hotel.mypaperformat_a4_portrait"/>     
+        </record>   
+    </data>
+</odoo>
