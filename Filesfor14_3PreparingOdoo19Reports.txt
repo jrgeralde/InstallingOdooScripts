@@ -1,0 +1,375 @@
+#----------------------------------------------------------------------------------------------------
+# myaddons/hotel/views/paperformats.xml
+#----------------------------------------------------------------------------------------------------
+
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="mypaperformat_a4_portrait" model="report.paperformat">
+            <field name="name">A4 Portrait Custom</field>
+            <field name="default" eval="False"/>
+            <field name="format">A4</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">35</field>
+            <field name="margin_bottom">40</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">35</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="mypaperformat_a4_landscape" model="report.paperformat">
+            <field name="name">A4 Landscape Custom</field>
+            <field name="default" eval="False"/>
+            <field name="format">A4</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">20</field>
+            <field name="margin_bottom">20</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">20</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="mypaperformat_letter_portrait" model="report.paperformat">
+            <field name="name">Letter Portrait Custom</field>
+            <field name="default" eval="False"/>
+            <field name="format">Letter</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">45</field>
+            <field name="margin_bottom">40</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">45</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="mypaperformat_letter_landscape" model="report.paperformat">
+            <field name="name">Letter Landscape Custom</field>
+            <field name="default" eval="False"/>
+            <field name="format">Letter</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">20</field>
+            <field name="margin_bottom">20</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">20</field>
+            <field name="dpi">90</field>
+        </record>
+    </data>
+</odoo>
+
+#----------------------------------------------------------------------------------------------------
+# myaddons/hotel/static/src/scss/reportstyles.scss
+#----------------------------------------------------------------------------------------------------
+/* css classes for injection for wkhtmltopdf */
+
+.myreporttablethin { margin-bottom:0 !important; margin-top:0 !important; border-collapse:collapse;}
+
+
+/* font-sizes */
+.mylbl-10 {
+  font-size:10px !important; 
+}
+
+.mylbl-11 {
+  font-size:11px !important;
+}
+
+.mylbl-12 {
+  font-size:12px !important;
+}
+
+.mylbl-14 {
+  font-size:14px !important;
+}
+
+.mylbl-15 {
+  font-size:15px !important;
+}
+
+.mylbl-16 {
+  font-size:16px !important;
+}
+
+.mylbl-18 {
+  font-size:18px !important;
+}
+
+.mylbl-20 {
+  font-size:20px !important;
+}
+
+/* color styles */
+.mycolor-555  {
+  color:#555 !important;  
+}
+
+/* test style */
+.test-style {
+  color: red !important;
+  font-size: 30px !important;
+}
+
+
+/*width classes */
+.myw-5 {display:inline-block !important; width:5px !important;}
+.myw-10 {display:inline-block !important; width:10px !important;}
+.myw-15 {display:inline-block !important; width:15px !important;}
+.myw-20 {display:inline-block !important; width:20px !important;}
+.myw-30 {display:inline-block !important; width:30px !important;}
+.myw-40 {display:inline-block !important; width:40px !important;}
+.myw-45 {display:inline-block !important; width:45px !important;}
+.myw-50 {display:inline-block !important; width:50px !important;}
+.myw-60 {display:inline-block !important; width:60px !important;}
+.myw-70 {display:inline-block !important; width:70px !important;}
+.myw-80 {display:inline-block !important; width:80px !important;}
+.myw-90 {display:inline-block !important; width:90px !important;}
+.myw-100 {display:inline-block !important; width:100px !important;}
+.myw-110 {display:inline-block !important; width:110px !important;}
+.myw-120 {display:inline-block !important; width:120px !important;}
+.myw-130 {display:inline-block !important; width:130px !important;}
+.myw-140 {display:inline-block !important; width:140px !important;}
+.myw-150 {display:inline-block !important; width:150px !important;}
+.myw-160 {display:inline-block !important; width:160px !important;}
+.myw-170 {display:inline-block !important; width:170px !important;}
+.myw-180 {display:inline-block !important; width:180px !important;}
+.myw-190 {display:inline-block !important; width:190px !important;}
+.myw-200 {display:inline-block !important; width:200px !important;}
+
+/* height classes */
+.myh-5 {height:5px !important;}
+.myh-10 {height:10px !important;}
+.myh-20 {height:20px !important;}
+.myh-25 {height:25px !important;}
+.myh-30 {height:30px !important;}
+.myh-40 {height:40px !important;}
+.myh-50 {height:50px !important;}
+.myh-100 {height:100px !important;}
+
+/*width classes for tables */
+.mytbw-2 {width:2px !important;}
+.mytbw-3 {width:3px !important;}
+.mytbw-5 {width:5px !important;}
+.mytbw-7 {width:7px !important;}
+.mytbw-10 {width:10px !important;}
+.mytbw-15 {width:15px !important;}
+.mytbw-20 {width:20px !important;}
+.mytbw-25 {width:25px !important;}
+.mytbw-30 {width:30px !important;}
+.mytbw-40 {width:40px !important;}
+.mytbw-45 {width:45px !important;}
+.mytbw-50 {width:50px !important;}
+.mytbw-60 {width:60px !important;}
+.mytbw-70 {width:70px !important;}
+.mytbw-75 {width:75px !important;}
+.mytbw-78 {width:78px !important;}
+.mytbw-80 {width:80px !important;}
+.mytbw-85 {width:85px !important;}
+.mytbw-90 {width:90px !important;}
+.mytbw-100 {width:100px !important;}
+.mytbw-105 {width:105px !important;}
+.mytbw-110 {width:110px !important;}
+.mytbw-120 {width:120px !important;}
+.mytbw-125 {width:125px !important;}
+.mytbw-130 {width:130px !important;}
+.mytbw-140 {width:140px !important;}
+.mytbw-150 {width:150px !important;}
+.mytbw-160 {width:160px !important;}
+.mytbw-170 {width:170px !important;}
+.mytbw-180 {width:180px !important;}
+.mytbw-190 {width:190px !important;}
+.mytbw-200 {width:200px !important;}
+.mytbw-210 {width:210px !important;}
+
+/* padding and margin classes */
+
+.mypadd2-2 {padding:2px 2px !important;}
+.mypadd2-4 {padding:2px 4px !important;}
+
+.mymp0-0 {
+   margin:0 !important;
+   padding:0 !important;
+}
+
+.mymptop0-0 {
+   margin-top:0 !important;
+   padding-top:0 !important;
+}
+
+
+.mypdr-2 {
+  padding-right:2px !important;
+}
+
+.mypdr-3 {
+  padding-right:3px !important;
+}
+
+.mypdr-4 {
+  padding-right:4px !important;
+}
+
+.mypdr-5 {
+  padding-right:5px !important;
+}
+
+.mypdr-7 {
+  padding-right:7px !important;
+}
+
+.mypdr-8 {
+  padding-right:8px !important;
+}
+
+.mypdr-9 {
+  padding-right:9px !important;
+}
+
+.mypdr-10 {
+  padding-right:10px !important;
+}
+
+.mypdr-15 {
+  padding-right:15px !important;
+}
+
+.mypdr-20 {
+  padding-right:20px !important;
+}
+
+.mypdr-25 {
+  padding-right:25px !important;
+}
+
+.mypdr-30 {
+  padding-right:30px !important;
+}
+
+
+/* padding left */
+.mypdl-2 {
+  padding-left:2px !important;
+}
+
+.mypdl-3 {
+  padding-left:3px !important;
+}
+
+.mypdl-4 {
+  padding-left:4px !important;
+}
+
+.mypdl-5 {
+  padding-left:5px !important;
+}
+
+.mypdl-7 {
+  padding-left:7px !important;
+}
+
+.mypdl-8 {
+  padding-left:8px !important;
+}
+
+.mypdl-9 {
+  padding-left:9px !important;
+}
+
+.mypdl-10 {
+  padding-left:10px !important;
+}
+
+.mypdl-15 {
+  padding-left:15px !important;
+}
+
+.mypdl-20 {
+  padding-left:20px !important;
+}
+
+.mypdl-25 {
+  padding-left:25px !important;
+}
+
+.mypdl-30 {
+  padding-left:30px !important;
+}
+
+
+/* borders and lines */
+.mydblline {
+  border-top: 1px solid black !important;
+  border-bottom: 1px solid black !important;
+  padding: 0;       /* remove tiny padding */
+  margin: 0;
+  width: 100%;      /* ensure full width */
+}
+
+.myhrline{border:0; border-top:1px solid black; margin:0 0 5px 0;}
+
+/* prevent blank trailing page */
+.page:last-child {
+  page-break-after: auto !important;
+}
+
+#----------------------------------------------------------------------------------------------------
+# __manifest__.py
+#----------------------------------------------------------------------------------------------------
+# -*- coding: utf-8 -*-
+{
+    'name': "hotel",
+    'summary': "Hotel Management System",
+    'description': "Hotel Guest Registration and Billing System",
+    'author': "ROYTEK",
+    'website': "https://www.roytek.odoo.com",
+
+    'category': 'Uncategorized',
+    'version': '19.0.1.4.0',
+
+    'depends': ['base', 'web'],
+
+    'license': 'LGPL-3',
+
+    'assets': {
+        'web.report_assets_common': [
+            'hotel/static/src/scss/reportstyles.scss',
+        ],
+    }, 
+
+    # Always loaded data
+    'data': [
+        'reports/paperformats.xml',     # LOAD THIS FIRST
+    #  'reports/guestbill.xml',
+        'wizards/roombillrecord_edit.xml',        
+        'wizards/roombillrecord_new.xml',
+        'security/ir.model.access.csv',
+        'views/mainmenu.xml',
+        'views/guestregistration.xml',
+        'views/guests.xml',         
+        'views/rooms.xml',         
+        'views/roomtypes.xml',   
+        'views/charges.xml', 
+    
+    ],
+
+    'installable': True,
+    'application': True,
+}
+
+#----------------------------------------------------------------------------------------------------
+#  line no field in guest bill list view of guestregistration.xml
+#----------------------------------------------------------------------------------------------------
+
+<field name="line_no" options="{'format': '05d'}" width="30px"/>
+
+
+
+
+
+
+
