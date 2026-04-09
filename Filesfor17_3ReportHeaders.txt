@@ -1,0 +1,349 @@
+#----------------------------------------------------------------------------------------------------------------------------------------------------
+#  myaddons/hotel/reports/pageheader.xml   - The Standard Page Header
+#----------------------------------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="report_pageheader">
+            <t t-set="company" t-value="o.company_id or env.user.company_id"/>
+            <div class="header">
+                 <div class="mypageheader">
+                    <!-- LEFT: Logo -->
+                    <div class="mypageheader-left">
+                        <img t-att-src="'/web/image/res.company/%s/logo' % company.id"
+                            class="mylogo"/>
+                    </div>
+
+                    <!-- CENTER: Report Title + Company Info -->
+                    <div class="mypageheader-center">
+                        <h2 class="myreport-title" t-out="reporttitle"></h2>
+                        <h3 class="myreport-company" t-out="company.name"></h3>
+                        <p class="myreport-address" t-out="company.street"></p>
+                        <p class="myreport-phone" t-out="'Phone No: ' + company.phone + ' Email: ' + company.email"/>
+                    </div>
+
+                    <!-- RIGHT: Page Number -->
+                    <div class="mypageheader-right">
+                        <p class="mypageindicator">Page <span class="page"/> / <span class="topage"/></p>
+                    </div>
+                </div>
+                <t t-out="0"/>
+           
+            </div>
+
+        </template>
+    </data>
+</odoo>     
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------
+#  myaddons/hotel/reports/guestbill.xml   - The Main Report
+#----------------------------------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="report_guestbill">
+            <t t-call="web.html_container">
+                <t t-call="web.basic_layout">
+
+                    <t t-foreach="docs" t-as="o">
+                    <t t-set="reporttitle" t-value="'Guest Bill'"/>
+ 
+                    <t t-call="hotel.report_pageheader"/>    
+
+                        <div style="margin-top: 32px;">
+                            <div class="row" style="display: flex; align-items: center; width: 100%;">
+                                <div t-if="o.grc_id" style="flex: 0 0 10%; max-width: 10%;">
+                                    <strong class="mylbl-10">GRC #</strong>
+                                    <span class="mylbl-12" t-field="o.grc_id"/>
+                                </div>
+                                <div t-if="o.guest_id" style="flex: 0 0 40%; max-width: 40%;">
+                                    <strong class="mylbl-10">Guest Name</strong>
+                                    <span class="mylbl-12" t-field="o.guest_id"/>
+                                </div>
+                                <div t-if="o.room_id" style="flex: 0 0 15%; max-width: 15%;">
+                                    <strong class="mylbl-10">Room No.</strong>
+                                    <span class="mylbl-12" t-field="o.room_id"/>
+                                </div>
+                                <div t-if="o.roomtname" style="flex: 0 0 15%; max-width: 15%;">
+                                    <strong class="mylbl-10">Room Type</strong>
+                                    <span class="mylbl-12" t-field="o.roomtname"/>
+                                </div>
+                                <div t-if="o.create_date_ampm" style="flex: 0 0 20%; max-width: 20%;">
+                                    <strong class="mylbl-10">Date</strong>
+                                    <span class="mylbl-12" t-field="o.create_date_ampm"/>
+                                </div>
+                            </div>
+                            <div class="row" style="display: flex; align-items: center; width: 100%;">
+                                <div t-if="o.datefromsched_ampm" style="flex: 0 0 25%; max-width: 25%;">
+                                    <strong class="mylbl-10">Check In:</strong>
+                                    <span class="mylbl-12" t-field="o.datefromsched_ampm"/>
+                                </div>
+                                <div t-if="o.datetosched_ampm" style="flex: 0 0 25%; max-width: 25%;">
+                                    <strong class="mylbl-10">Check Out:</strong>
+                                    <span class="mylbl-12" t-field="o.datetosched_ampm"/>
+                                </div>
+                                <div t-if="o.state" style="flex: 0 0 20%; max-width: 20%;">
+                                    <strong class="mylbl-10">Status:</strong>
+                                    <span class="mylbl-12" t-field="o.state"/>
+                                </div>
+                                <div t-if="o.total_amount_applied" style="flex: 0 0 30%; max-width: 30%;">
+                                    <strong class="mylbl-10">Total Balance:</strong>
+                                    <span class="mylbl-12" t-field="o.total_amount_applied"/>
+                                </div>
+                            </div>
+                        </div>
+
+                
+
+                        <div class="page mypage">   
+                            <table class="table table-borderless mymp0-0" style="width:100%; table-layout: fixed; border-collapse: collapse;">
+                                <thead class="mydblline">
+                                    <tr class="mytr">
+                                        <th class="text-center mymp0-0 mytbw-40 mylbl-10"> <strong>LN#</strong></th>
+                                        <th class="text-start mymp0-0 mytbw-90 mylbl-10"> <strong>Date</strong></th>
+                                        <th class="text-start mymp0-0 mytbw-40 mylbl-10"> <strong>Doc</strong></th>
+                                        <th class="text-center mymp0-0 mytbw-60 mylbl-10 mymr-5"><strong>No.</strong></th>
+                                        <th class="text-start mymp0-0 mytbw-150 mylbl-10"><strong>Account Title</strong></th>
+                                        <th class="text-start mymp0-0 mytbw-150 mylbl-10"><strong>Details</strong></th>
+                                        <th class="text-center mymp0-0 mytbw-125 mylbl-10"><strong>Amount</strong></th>
+                                        <th class="text-start mymp0-0 mytbw-40 mylbl-10"><strong>Status</strong></th>
+                                        <th class="text-end mymp0-0 mytbw-75 mylbl-10"><strong>Debit</strong></th>
+                                        <th class="text-end mymp0-0 mytbw-75 mylbl-10"><strong>Credit</strong></th>
+                                        <th class="text-end mymp0-0 mytbw-75 mylbl-10"><strong>Balance</strong></th>
+                                    </tr>    
+                                </thead>
+                                <tbody>   
+                                    <t t-set="ptotal_debit" t-value="0"/>
+                                    <t t-set="ptotal_credit" t-value="0"/>
+                                    <t t-set="ptotal_balance" t-value="0"/> 
+                                    <t t-set="grunning_balance" t-value="0"/>
+
+                                    <t t-foreach="o.roombill_ids" t-as="line">
+
+
+                                        <t t-set="ptotal_debit" t-value="ptotal_debit + line.debitamt"/>
+                                        <t t-set="ptotal_credit" t-value="ptotal_credit + line.creditamt"/>
+                                        <t t-set="ptotal_balance" t-value="ptotal_balance + line.diffamt"/>
+                                        <t t-set="grunning_balance" t-value="grunning_balance + line.diffamt"/>
+
+                                        <tr class="mytr" style="height:15px !important;">
+                                            <td class="text-center mymp0-0 mytbw-40 mylbl-10"><t t-out="line_index + 1"/></td>
+                                            <td class="text-start mymp0-0 mytbw-90 mylbl-10"><span t-field="line.dateapplied_fmt"/></td>
+                                            <td class="text-start mymp0-0 mytbw-40 mylbl-10"><span t-field="line.document_id"/></td>
+                                            <td class="text-center mymp0-0 mytbw-60 mylbl-10 mymr-5"><span t-field="line.documentno"/></td>
+                                            <td class="text-start mymp0-0 mytbw-150 mylbl-10"><span t-field="line.charge_id"/></td>
+                                            <td class="text-start mymp0-0 mytbw-150 mylbl-10"><span t-field="line.details"/></td>
+                                            <td class="text-center mymp0-0 mytbw-125 mylbl-10"><span t-field="line.amountapplied"/></td>
+                                            <td class="text-start mymp0-0 mytbw-40 mylbl-10"><span t-field="line.state"/></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><span t-field="line.debitamt"/></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><span t-field="line.creditamt"/></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><span t-field="line.diffamt_fmt"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="mydblline mytr">
+                                        <td colspan="8" class="text-end mymp0-0 mylbl-10"><strong>Page Total</strong></td>
+                                        <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-esc="'{:,.2f}'.format(ptotal_debit)"/></strong></td>
+                                        <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-esc="'{:,.2f}'.format(ptotal_credit)"/></strong></td>
+                                        <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-esc="'({:,.2f})'.format(abs(ptotal_balance)) if ptotal_balance &lt; 0 else '{:,.2f}'.format(ptotal_balance)"/></strong></td>
+                                    </tr>
+                                    <tr class="mytr">
+                                        <td colspan="10" class="text-end mymp0-0 mylbl-10"><strong>Running Balance</strong></td>
+                                        <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-esc="'({:,.2f})'.format(abs(grunning_balance)) if grunning_balance &lt; 0 else '{:,.2f}'.format(grunning_balance)"/></strong></td>
+                                    </tr>
+
+
+                                    <t t-set="ptotal_debit" t-value="0"/>
+                                    <t t-set="ptotal_credit" t-value="0"/>
+                                    <t t-set="ptotal_balance" t-value="0"/>
+                                </tfoot>    
+                            </table>
+                        </div>
+
+                    </t>
+                </t>
+            </t>
+        </template>
+
+        <record id="action_report_bill" model="ir.actions.report">
+            <field name="name">Guest Bill</field>
+            <field name="model">hotel.guestregistration</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">hotel.report_guestbill</field>
+            <field name="report_file">hotel.report_guestbill</field>
+            <field name="print_report_name">'GRC%06d' % object.grc_id</field>
+            <field name="binding_model_id" ref="model_hotel_guestregistration"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="hotel.mypaperformat_a4_portrait"/>     
+        </record>   
+    </data>
+</odoo>   
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------
+#  additional classes in myaddons/hotel/static/src/scss/reportstyles.scss
+#----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*   Page Header Classes */
+/* Kill the padding on the Odoo/Bootstrap wrapper */
+.mypageheader {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    padding-bottom: 5px;
+    padding-left: 0 !important; 
+    margin-left: 0 !important;  
+}
+
+/* Ensure the image container isn't adding space */
+.mypageheader-left {
+    width: 12%;
+    text-align: left;
+    padding-left: 0 !important; 
+    margin-left: 0 !important;  
+}
+
+/* Force image to ignore line-height */
+.mylogo {
+    display: inline-block !important; 
+    max-height: 85px !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+
+/* CENTER */
+.mypageheader-center {
+    width: 73%; /* 60% */
+    margin-top: 10px !important;
+    text-align: left; /* center */
+}
+
+/* RIGHT */
+.mypageheader-right{
+    width: 15%; /* 60% */
+    margin-top: 10px !important;
+    text-align: left; /* center */
+}
+
+
+/* TITLE styling */
+.myreport-title {
+    margin-left:0px !important;
+    margin-top:55px !important;
+    margin-bottom: 2px !important;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Company styling */
+.myreport-company {
+    margin-left:0px !important;
+    margin-bottom: 0px !important;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+
+/* Address styling */
+.myreport-address {
+    margin-left:0px !important;
+    margin-bottom: 0px !important;
+    font-size: 10px;
+    
+}
+
+/* Phone styling */
+.myreport-phone {
+    margin-left:0px !important;
+    margin-top: 10px !important;
+
+    font-size: 10px;
+    
+}
+
+/* Email styling */
+.myreport-email {
+    margin-left:0px !important;
+    margin-top: 10px !important;
+    font-size: 10px;
+    
+}
+
+/* Page indicator */
+.mypageindicator {
+    font-size: 10px !important;
+    margin-top: 20px !important;
+    
+}
+
+
+.myarticle {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+ /* Prevents the 'page' from pushing an extra break */
+ .mypage {
+      page-break-after: avoid !important;
+      page-break-inside: avoid !important;
+  }
+
+  /* Tables */
+  .mytable-main {
+      width: 100% !important;
+      border-collapse: collapse !important;
+  }
+
+  /* Repeating thead and tfoot - apply to specific tables only */
+.myrepeat-header { display: table-header-group !important; }
+.myrepeat-footer { display: table-footer-group !important; }
+
+
+.mytr { page-break-inside: avoid; }
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------
+#  computing guest balances in myaddons/hotel/mode3s/guestregistration.py
+#----------------------------------------------------------------------------------------------------------------------------------------------------
+    total_amount_applied = fields.Float(
+            string="Total Balance", 
+            compute="_compute_total_amount_applied", 
+            store=False, #True, Set store=True so it's searchable and performant
+            digits=(12, 2)
+        )
+    @api.depends('roombill_ids.amountapplied', 'roombill_ids.state')
+    def _compute_total_amount_applied(self):
+        for rec in self:
+        # Filter only FINAL bills
+            bills = rec.roombill_ids.filtered(lambda b: b.state == 'FINAL')
+            
+            # Sum amountapplied, negating for document_id 3 or 5
+            rec.total_amount_applied = sum(
+                -b.amountapplied if b.document_id.id in (3, 5) else b.amountapplied
+                for b in bills
+            )
+
+    total_amount_appliedstr = fields.Char(
+            string="Total Balance", 
+            compute="_compute_total_amount_appliedstr", 
+            store=False  #True, Set store=True so it's searchable and performant
+            
+        )
+    @api.depends('roombill_ids.amountapplied', 'roombill_ids.state')
+    def _compute_total_amount_appliedstr(self):
+        for rec in self:
+            # Filter only FINAL bills
+            bills = rec.roombill_ids.filtered(lambda b: b.state == 'FINAL')
+            
+            # Compute sum with document_id logic
+            total = sum(
+                -b.amountapplied if b.document_id.id in (3, 5) else b.amountapplied
+                for b in bills
+            )
+            
+            # Format as string with parentheses if negative
+            if total < 0:
+                rec.total_amount_appliedstr = f"({abs(total):,.2f})"
+            else:
+                rec.total_amount_appliedstr = f"{total:,.2f}"
