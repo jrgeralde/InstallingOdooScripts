@@ -1,0 +1,294 @@
+--    Stored Procedure
+CREATE OR REPLACE PROCEDURE create_hotel_transaction_report_view(
+    date_from DATE, 
+    date_to DATE, 
+    cid INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Drop the view if it exists
+    DROP VIEW IF EXISTS hotel_transaction_report;
+
+    -- Create the view
+    -- Note: We use '''' to represent a single quote inside the format string
+    EXECUTE format('
+        CREATE OR REPLACE VIEW hotel_transaction_report AS (
+            SELECT 
+                hr.id,  
+                hr.guestregistration_id_copy as grc_id,
+                hr.document_id,
+                hd.name as doc,
+                hr.dateapplied,
+                hr.documentno,
+                hr.details,
+                hr.charge_id,
+                c.name as accounttitle,
+                hr.amountapplied,
+                hr.state,
+                CASE WHEN hr.document_id IN (3,5) AND hr.state = ''FINAL'' THEN COALESCE(hr.amountapplied,0) ELSE 0.00 END as debit_amt,
+                CASE WHEN hr.document_id NOT IN (3,5) AND hr.state = ''FINAL'' THEN COALESCE(hr.amountapplied,0) ELSE 0.00 END as credit_amt,
+                CONCAT(
+                    COALESCE(hgt.lastname, ''''), '', '', 
+                    COALESCE(hgt.firstname, ''''), '' '', 
+                    COALESCE(hgt.middlename, '''')
+                ) as guestname,
+                hm.name as roomname,
+                hrt.name as roomtypename,
+                hg.state as staystatus,
+                hr.company_id,
+                ROW_NUMBER() OVER (ORDER BY c.name,hr.dateapplied) AS line_no
+            FROM hotel_roombill hr
+            LEFT JOIN hotel_documents hd ON hr.document_id = hd.id
+            LEFT JOIN hotel_charges c ON hr.charge_id = c.id
+            LEFT JOIN hotel_guestregistration hg ON hr.guestregistration_id_copy = hg.id
+            LEFT JOIN hotel_guests hgt ON hg.guest_id = hgt.id
+            LEFT JOIN hotel_rooms hm ON hg.room_id = hm.id
+            LEFT JOIN hotel_roomtypes hrt ON hm.roomtype_id = hrt.id
+            WHERE (hr.dateapplied BETWEEN %L AND %L) AND hr.company_id = %s
+        )', date_from, date_to, cid);
+END;
+$$;
+
+#----  Python Model - DASH BOARD
+from odoo import models, fields, api
+
+class HotelTransactionDashboard(models.Model):
+    _name = 'hotel.transaction.dashboard'
+    _description = 'Hotel Transaction Dashboard'
+
+    # 1. Identity and Context
+    user_id = fields.Many2one('res.users', default=lambda self: self.env.user)
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
+    
+    # 2. Filter Parameters
+    date_from = fields.Date(string='Start Date', default=fields.Date.context_today, required=True)
+    date_to = fields.Date(string='End Date', default=fields.Date.context_today, required=True)
+    
+    # 3. Results Link
+    # This Many2many links to your 'hotel.transaction_report' (the _auto=False model)
+    report_line_ids = fields.Many2many(
+        'hotel.transaction_report', 
+        compute='_compute_report_lines',
+        string="Transaction Results"
+    )
+
+    @api.depends('date_from', 'date_to')
+    def _compute_report_lines(self):
+        for record in self:
+            # We fetch all rows currently available in the SQL view.
+            # The view is updated whenever 'action_refresh_results' is clicked.
+            record.report_line_ids = self.env['hotel.transaction_report'].search([])
+
+    def action_refresh_results(self):
+        self.ensure_one()
+        
+        # Call your updated stored procedure with the company ID
+        # Note: Use self.env.cr.execute for direct procedure calls
+        self.env.cr.execute(
+            "CALL create_hotel_transaction_report_view(%s, %s, %s)", 
+            (self.date_from, self.date_to, self.company_id.id)
+        )
+        
+        # IMPORTANT: We must invalidate the cache for the report model 
+        # so Odoo fetches the fresh data from the newly created SQL View.
+        self.env['hotel.transaction_report'].invalidate_model()
+
+        # Reload the client UI to show the new data
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
+
+    def action_print_pdf(self):
+        """Optional: Triggers the PDF report using the grouped logic we discussed."""
+        return self.env.ref('your_module_name.action_report_hotel_transactions').report_action(self)
+
+#--  The MAIN report Model ------------------------------------------------------------------
+
+class HotelTransactionReport(models.Model):
+    _name = 'hotel.transaction_report'
+    _description = 'Hotel Transaction Analysis'
+    _auto = False  # Tells Odoo NOT to create a table in the database
+    _order = 'accounttitle, dateapplied'
+
+    # Mapping fields to the SQL view columns
+    # id = fields.Integer(readonly=True)
+
+    
+    grc_id = fields.Many2one('hotel.guestregistration', string="Registration", readonly=True)
+    doc = fields.Char(string="Doc.", readonly=True)
+    dateapplied = fields.Date(string="Date", readonly=True)
+    documentno = fields.Char(string="No.", readonly=True)
+    details = fields.Text(string="Details", readonly=True)
+    accounttitle = fields.Char(string="Account/Charge", readonly=True)
+    state = fields.Char(string="Status", readonly=True)
+    debit_amt = fields.Float(string="Debit", readonly=True, digits=(12, 2))
+    credit_amt = fields.Float(string="Credit", readonly=True, digits=(12, 2))
+    guestname = fields.Char(string="Guest Name", readonly=True)
+    roomname = fields.Char(string="Room", readonly=True)
+    roomtypename = fields.Char(string="Room Type", readonly=True)
+    staystatus = fields.Char(string="Stay Status", readonly=True)
+    company_id = fields.Many2one('res.company', string="Company", readonly=True)
+
+
+    line_no = fields.Integer(string='Line #',readonly=True)  # This will be computed in SQL, not in Python
+
+    def init(self):
+        """
+        This method runs when the module is installed/updated.
+        It ensures the view exists even before the user clicks 'Refresh'.
+        """
+        default_company = self.env.company.id if self.env.company else 1
+        # Initialize with a broad range to prevent the view from being empty on start
+        self.env.cr.execute(
+            "CALL create_hotel_transaction_report_view(%s, %s, %s)", 
+            ('1900-01-01', '1901-01-01', default_company)
+        )
+
+    dateapplied_ampm = fields.Char(
+       string="Date",
+        compute='_compute_dateapplied_ampm',
+        store=False  # not stored in the database
+    )
+
+    @api.depends('dateapplied')
+    def _compute_dateapplied_ampm(self):
+        user_tz = self.env.user.tz or 'UTC'
+        for rec in self:
+            if rec.dateapplied:
+                # convert from UTC to user timezone
+                dt_utc = fields.Datetime.from_string(rec.dateapplied)
+                dt_local = pytz.utc.localize(dt_utc).astimezone(pytz.timezone(user_tz))
+                # format with AM/PM
+                rec.dateapplied_ampm = dt_local.strftime('%m-%d-%Y %I:%M %p')
+            else:
+                rec.dateapplied_ampm = ''
+
+#--  THE DASHBOARD XML ---------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hotel_transaction_dashboard_form" model="ir.ui.view">
+        <field name="name">hotel.transaction.dashboard.form</field>
+        <field name="model">hotel.transaction.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Hotel Transaction Analysis" create="0" delete="0" options="{'no_open': True}">
+                <header>
+                    <button name="action_refresh_results" 
+                            string="Refresh Data" 
+                            type="object" 
+                            class="btn-primary" 
+                            icon="fa-refresh"/>
+<!--                     
+                        <button name="%(action_hotel_transactions_report)d"
+                            string="Print Transaction Report"
+                            type="action"
+                            class="btn-primary float-end"
+                            confirm="Print Transaction Report?"
+                            icon="fa-print"/>
+
+                        <button name="%(action_hotel_transactions_report2)d"
+                            string="Print Transaction Report With Subtotals"
+                            type="action"
+                            class="btn-primary float-end"
+                            confirm="Print Transaction Report?"
+                            icon="fa-print"/> -->
+                </header>
+
+                <sheet>
+                 
+                  
+                   <group>
+                        <field name="date_from" string="Date Start"/>
+                        <field name="date_to" string="Date End"/>
+                        <newline/> 
+                    </group>
+                                        <!-- <separator string="Report Results"/> -->
+                    
+                    <field name="report_line_ids" readonly="1">
+                        <list create="0" delete="0" decoration-success="state == 'FINAL'" decoration-muted="state != 'FINAL'" limit="65">
+                            <field name="line_no"/>
+                            <field name="dateapplied_ampm"/>
+                            <field name="guestname"/>
+                            <field name="roomname"/>
+                            <field name="roomtypename"/>
+                            <field name="doc"/>
+                            <field name="documentno"/>                            
+                            <field name="accounttitle"/>
+                            <field name="debit_amt" sum="Total Debit"/>
+                            <field name="credit_amt" sum="Total Credit"/>
+                            <field name="state" widget="badge"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_open_hotel_dashboard" model="ir.actions.server">
+        <field name="name">Transaction Dashboard</field>
+        <field name="model_id" ref="model_hotel_transaction_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">
+dashboard = model.search([('user_id', '=', env.uid), ('company_id', '=', env.company.id)], limit=1)
+if not dashboard:
+    dashboard = model.create({'user_id': env.uid, 'company_id': env.company.id})
+
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'hotel.transaction.dashboard',
+    'res_id': dashboard.id,
+    'view_mode': 'form',
+    'target': 'current',
+}
+        </field>
+    </record>
+
+    <menuitem id="menu_hotel_transaction_dashboard" 
+              name="Transaction Dashboard" 
+              parent="hotel.menu_hotel_reports" 
+              action="action_open_hotel_dashboard" 
+              sequence="10"/>
+</odoo>
+
+
+#------------------THE new myaddons\hotel\__init__.pya
+
+from . import hotelcompany
+from . import charges
+from . import rooms
+from . import guests
+from . import guestregistration
+from . import hoteldocuments
+from . import roombill, roombillrecord_new
+from . import hoteltransactiondashboard
+
+#----------------The new myaddon\hotel\views\mainmenu.xml
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- Top menu item -->
+  <menuitem name="Hotel System" id="menu_hotel_root" web_icon="hotel,static/description/icon.png"/>
+  <!-- menu categories -->
+  <menuitem 
+    name="Guest Registrations" 
+    id="menu_hotel_guestregistration_list"
+    parent="menu_hotel_root"
+    sequence="10"/>
+
+  <menuitem 
+    name="Hotel Reports" 
+    id="menu_hotel_reports" 
+    parent="menu_hotel_root"
+    sequence="15"/>
+    
+  <menuitem 
+    name="Master Lists" 
+    id="menu_hotel_masterlists" 
+    parent="menu_hotel_root"
+    sequence="20"/>
+</odoo>
+
+
+
+
+
