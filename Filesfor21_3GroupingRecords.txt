@@ -1,0 +1,335 @@
+#--------------------------------------------------------------------------------------------------
+#   The Grouping Report Template
+#--------------------------------------------------------------------------------------------------
+
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="report_transactions3">
+            <t t-call="web.html_container">
+                <t t-call="web.basic_layout">
+
+
+                    <t t-foreach="docs" t-as="o">
+
+                        <!-- Insert Standard Page Header Here -->
+                   
+     
+
+                        <div class="page mypage">   
+
+                            <table class="table table-borderless mymp0-0" style="width:100%; table-layout: fixed; border-collapse: collapse;">
+                                <thead class="mydblline">
+                                    <tr class="mytr">
+                                        <!---  Insert Column Headers Here  -->
+                                        
+                                    </tr>    
+                                </thead>
+                                <tbody>   
+                                    
+'   		    <!-- Initialize Group Totals Here -->
+                                    <t t-set="last_account" t-value="False"/>  <!-- Grouping Basis -->
+                                     <t t-set="group_line" t-value="0"/>
+                                
+                                    <t t-if="o.report_line_ids">
+                                        <t t-foreach="o.report_line_ids" t-as="line" t-foreach-index="idx">
+                                           
+                                            <!-- Insert Group Footer  First-->    
+                                            <t t-if="last_account!=false and last_account != line.accounttitle">
+
+                                                <!-- Print Group Footer Contents Here -->
+                                                <tr class="mytr mysingleline" style="height:15px !important;">
+                                                 </tr>
+                                            </t>
+
+                                            <!-- Group Header -->    
+                                            <t t-if="last_account==false or last_account != line.accounttitle">
+			<!-- Print Group Header Contents Here -->
+                                                <tr class="mytr" style="height:15px !important;">
+      
+                                                </tr>
+
+                                                 <!--   Reinitialize Group Totals except grouping basis -->
+                                                <t t-set="group_line" t-value="0"/> 
+                                                
+                                            </t>
+
+                                            <tr class="mytr" style="height:15px !important;">
+			<!-- Print REcords Here -->
+                                            </tr>
+
+                                            <t t-set="last_account" t-value="line.accounttitle"/>
+                                            <t t-set="group_line" t-value="group_line+1"/> 
+		          <!-- Increment Group Totals here -->
+
+
+
+                                            <!-- Group Footer for Last Line-->    
+                                            <t t-if="line_last">
+                                                <!-- Copy the Group Footer Here -->
+                                                <tr class="mytr mysingleline" style="height:15px !important;">
+   
+                                                </tr>
+                                            </t>
+
+
+                                        </t>
+                                    </t>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="mysingleline mytr">
+                                        <td colspan="10" class="text-center mymp0-0 mylbl-10"></td>
+                                    </tr>
+                                </tfoot>    
+                            </table>
+                        </div>
+
+                    </t>
+                </t>
+            </t>
+        </template>
+
+        <record id="action_hotel_transactions_report3" model="ir.actions.report">
+            <field name="name">Hotel Transactions</field>
+            <field name="model">hotel.transaction.dashboard</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">hotel.report_transactions3</field>
+            <field name="report_file">hotel.report_transactions3</field>
+            <field name="print_report_name">'hotel_transactions3'</field>
+            <field name="binding_model_id" ref="model_hotel_transaction_dashboard"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="hotel.mypaperformat_a4_portrait2"/>     
+        </record>   
+    </data>
+</odoo>
+
+#-------------------------------------------------------------------------------------------------------------------
+#   myaddons/hotel/reports/pageheader2.xml - the Page Header of Summary Reports
+#--------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="report_pageheader2">
+            <t t-set="company" t-value="o.company_id or env.user.company_id"/>
+            <div class="header">
+                 <div class="mypageheader">
+                    <!-- LEFT: Logo -->
+                    <div class="mypageheader-left">
+                        <img t-att-src="'/web/image/res.company/%s/logo' % company.id"
+                            class="mylogo"/>
+                    </div>
+
+                    <!-- CENTER: Report Title + Company Info -->
+                    <div class="mypageheader-center">
+                        <h2 class="myreport-title" t-out="reporttitle"></h2>
+                        <h3 class="myreport-company" t-out="company.name"></h3>
+                        <p class="myreport-address" t-out="company.street"></p>
+                        <p class="myreport-phone" t-out="'Phone No: ' + company.phone + ' Email: ' + company.email"/>
+                    </div>
+
+                    <!-- RIGHT: Page Number -->
+                    <div class="mypageheader-right">
+                        <p class="mypageindicator">Page <span class="page"/> / <span class="topage"/></p>
+                    </div>
+                </div>
+
+                <div class="mypageheader" style="margin-top: 10px;">
+                
+                    <div class="row" style="display: flex; align-items: center; width: 100%;">
+                        <div t-if="o.datefrom_fmt" style="flex: 0 0 25%; max-width: 25%;">
+                            <strong class="mylbl-10">Date From:</strong>
+                            <span class="mylbl-12" t-out="datefrom"/>
+                        </div>
+                        <div t-if="o.dateto_fmt" style="flex: 0 0 25%; max-width: 25%;">
+                            <strong class="mylbl-10">Date To:</strong>
+                            <span class="mylbl-12" t-out="dateto"/>
+                        </div>
+                        
+                    </div>
+                </div>
+
+                <t t-out="0"/>
+           
+            </div>
+
+        </template>
+    </data>
+</odoo>        
+
+#-------------------------------------------------------------------------------------------------------------------
+#   The Paper Format for the New Report
+#--------------------------------------------------------------------------------------------------------------------
+        <record id="mypaperformat_a4_portrait2" model="report.paperformat">
+            <field name="name">A4 Portrait Custom</field>
+            <field name="default" eval="False"/>
+            <field name="format">A4</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">40</field> 
+            <field name="margin_bottom">15</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">5</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">28</field>
+            <field name="dpi">90</field>
+        </record>
+
+#-------------------------------------------------------------------------------------------------------------------
+#   myaddons/hotel/reports/hoteltransaction3.xml - The Grouped Report
+#--------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="report_transactions3">
+            <t t-call="web.html_container">
+                <t t-call="web.basic_layout">
+
+
+                    <t t-foreach="docs" t-as="o">
+
+                        <!-- Insert Standard Page Header Here -->
+                        <!-- Insert Standard Page Header Here -->
+                        <t t-set="reporttitle" t-value="'Hotel Transactions Summary'"/>
+                        <t t-set="datefrom" t-value="o.datefrom_fmt"/>
+                        <t t-set="dateto" t-value="o.dateto_fmt"/>
+
+                        <t t-call="hotel.report_pageheader2"/>                    
+     
+
+                        <div class="page mypage">   
+
+                            <table class="table table-borderless mymp0-0" style="width:100%; table-layout: fixed; border-collapse: collapse;">
+                                <thead class="mydblline">
+                                    <tr class="mytr">
+                                        <!---  Insert Column Headers Here  -->
+                                        <th class="text-center mymp0-0 mytbw-40 mylbl-10"> <strong>LN#</strong></th>
+                                        <th class="text-start mymp0-0 mytbw-90 mylbl-10"> <strong>Date</strong></th>
+                                        <th class="text-start mymp0-0 mytbw-150 mylbl-10"><strong>Guest Name</strong></th>
+                                        <th class="text-start mymp0-0 mytbw-40 mylbl-10"><strong>Room</strong></th>
+                                        <th class="text-start mymp0-0 mytbw-40 mylbl-10"> <strong>Room Type</strong></th>
+                                        <th class="text-center mymp0-0 mytbw-40 mylbl-10"> <strong>Doc</strong></th>
+                                        <th class="text-end mymp0-0 mytbw-60 mylbl-10 mymr-5"><strong>No.</strong></th>
+                                        <th class="text-end mymp0-0 mytbw-75 mylbl-10"><strong>Debit</strong></th>
+                                        <th class="text-end mymp0-0 mytbw-75 mylbl-10"><strong>Credit</strong></th>                                        
+                                        <th class="text-center mymp0-0 mytbw-40 mylbl-10"><strong>Status</strong></th>                                          
+                                    </tr>    
+                                </thead>
+                                <tbody>   
+                                    
+                            		<!-- Initialize Group Totals Here -->
+                                    <t t-set="last_account" t-value="False"/>  <!-- Grouping Basis -->
+                                     <t t-set="group_line" t-value="0"/>
+
+                                    <t t-set="subtotal_debit" t-value="0.0"/>
+                                    <t t-set="subtotal_credit" t-value="0.0"/>
+                                
+                                    <t t-if="o.report_line_ids">
+                                        <t t-foreach="o.report_line_ids" t-as="line" t-foreach-index="idx">
+                                           
+                                            <!-- Insert Group Footer  First-->    
+                                            <t t-if="last_account!=false and last_account != line.accounttitle">
+
+                                                <tr class="mytr mysingleline" style="height:15px !important;">
+                                                    <td class="text-center mymp0-0 mytbw-40 mylbl-10"></td>
+                                                    <td class="text-center mymp0-0 mytbw-90 mylbl-10"><span t-out="'*** SUB TOTAL:'"/></td>
+                                                    <td class="text-start mymp0-0 mytbw-150 mylbl-14"><span t-out="last_account"/></td>
+                                                    <td class="text-start mymp0-0 mytbw-40 mylbl-10"></td>
+                                                    <td class="text-start mymp0-0 mytbw-40 mylbl-10"></td>                                     
+                                                    <td class="text-center mymp0-0 mytbw-40 mylbl-10"></td>
+                                                    <td class="text-end mymp0-0 mytbw-60 mylbl-10"></td>
+                                                    <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-out="'{:,.2f}'.format(subtotal_debit)"/></strong></td>
+                                                    <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-out="'{:,.2f}'.format(subtotal_credit)"/></strong></td>
+                                                    <td class="text-end mymp0-0 mytbw-40 mylbl-10"></td>
+
+                                                 </tr>
+                                            </t>
+ 
+                                            <!-- Group Header -->    
+                                            <t t-if="last_account==false or last_account != line.accounttitle">
+			                                    <!-- Print Group Header Contents Here -->
+                                                <tr class="mytr" style="height:15px !important;">
+                                                    <tr class="mytr" style="height:15px !important;">
+                                                    <td class="text-right mylbl-14" colspan="2">Account: </td>
+                                                    <td class="text-start mylbl-14"><span t-field="line.accounttitle"/></td>
+                                                </tr>
+    
+                                                </tr>
+
+                                                 <!--   Reinitialize Group Totals except grouping basis -->
+                                                <t t-set="group_line" t-value="0"/> 
+                                                
+                                            </t>
+
+                                            <tr class="mytr" style="height:15px !important;">
+			                                    <!-- Print REcords Here -->
+                                                <td class="text-center mymp0-0 mytbw-40 mylbl-10"><span t-out="'{:,.0f}'.format(group_line+1)"/></td>
+                                                <td class="text-start mymp0-0 mytbw-90 mylbl-10"><span t-field="line.dateapplied_ampm"/></td>
+                                                <td class="text-start mymp0-0 mytbw-150 mylbl-10"><span t-field="line.guestname"/></td>
+                                                <td class="text-start mymp0-0 mytbw-40 mylbl-10"><span t-field="line.roomname"/></td>
+                                                <td class="text-start mymp0-0 mytbw-40 mylbl-10"><span t-field="line.roomtypename"/></td>
+                                                <td class="text-center mymp0-0 mytbw-40 mylbl-10"><span t-field="line.doc"/></td>
+                                                <td class="text-end mymp0-0 mytbw-60 mylbl-10"><span t-field="line.documentno"/></td>
+                                                <td class="text-end mymp0-0 mytbw-75 mylbl-10 mymr-5"><span t-field="line.debit_amt"/></td>
+                                                <td class="text-end mymp0-0 mytbw-75 mylbl-10"><span t-field="line.credit_amt"/></td>
+                                                <td class="text-end mymp0-0 mytbw-40 mylbl-10"><span t-field="line.state"/></td>
+
+                                            </tr>
+
+                                            <t t-set="last_account" t-value="line.accounttitle"/>
+                                            <t t-set="group_line" t-value="group_line+1"/> 
+		                                    <!-- Increment Group Totals here -->
+
+                                            <t t-set="subtotal_debit" t-value="subtotal_debit+line.debit_amt"/>
+                                            <t t-set="subtotal_credit" t-value="subtotal_credit+line.credit_amt"/>
+
+
+
+                                            <!-- Group Footer for Last Line-->    
+                                            <t t-if="line_last">
+
+                                                <tr class="mytr mysingleline" style="height:15px !important;">
+                                                    <td class="text-center mymp0-0 mytbw-40 mylbl-10"></td>
+                                                    <td class="text-center mymp0-0 mytbw-90 mylbl-10"><span t-out="'*** SUB TOTAL:'"/></td>
+                                                    <td class="text-start mymp0-0 mytbw-150 mylbl-14"><span t-out="last_account"/></td>
+                                                    <td class="text-start mymp0-0 mytbw-40 mylbl-10"></td>
+                                                    <td class="text-start mymp0-0 mytbw-40 mylbl-10"></td>                                     
+                                                    <td class="text-center mymp0-0 mytbw-40 mylbl-10"></td>
+                                                    <td class="text-end mymp0-0 mytbw-60 mylbl-10"></td>
+                                                    <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-out="'{:,.2f}'.format(subtotal_debit)"/></strong></td>
+                                                    <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-out="'{:,.2f}'.format(subtotal_credit)"/></strong></td>
+                                                    <td class="text-end mymp0-0 mytbw-40 mylbl-10"></td>
+   
+                                                </tr>
+                                            </t>
+
+ 
+                                        </t>
+                                    </t>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="mysingleline mytr">
+                                        <td colspan="10" class="text-center mymp0-0 mylbl-10"></td>
+                                    </tr>
+                                </tfoot>    
+                            </table>
+                        </div>
+
+                    </t>
+                </t>
+            </t>
+        </template>
+
+        <record id="action_hotel_transactions_report3" model="ir.actions.report">
+            <field name="name">Hotel Transactions</field>
+            <field name="model">hotel.transaction.dashboard</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">hotel.report_transactions3</field>
+            <field name="report_file">hotel.report_transactions3</field>
+            <field name="print_report_name">'hotel_transactions3'</field>
+            <field name="binding_model_id" ref="model_hotel_transaction_dashboard"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="hotel.mypaperformat_a4_portrait2"/>     
+        </record>   
+    </data>
+</odoo>
