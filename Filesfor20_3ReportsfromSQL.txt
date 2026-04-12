@@ -1,0 +1,313 @@
+#------------------------------------------------------------------------------------------------
+#  Basic Multi Page Report Template 
+#-------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="report_hoteltransactions">
+            <t t-call="web.html_container">
+                <t t-call="web.basic_layout">
+
+                    <t t-foreach="docs" t-as="o">
+
+                         <!-- Insert Standard Page Header Here -->
+
+                          <!-- Initialize Grand Totals here -->                                         
+                         <t t-foreach="o.hotel_transaction_report_pages(65)" t-as="page_lines">
+
+
+                             <!-- Main Content -->
+
+                            <div class="page mypage">   
+                                  
+                                 <!-- Insert Report Specific Page Header here -->
+
+                                <table class="table table-borderless mymp0-0" style="width:100%; table-layout: fixed; border-collapse: collapse;">
+                                    <thead class="mydblline">
+                                        <tr class="mytr">
+                                             <!---  Insert Column Headers Here  -->
+                                        </tr>    
+                                    </thead>
+                                    <tbody>   
+                                         <!-- Initialize your Page Totals here -->
+                                         
+                                        <t t-foreach="page_lines" t-as="line">
+
+		            <!-- Increment Page and	Grand Totals Here -->
+
+                                              <tr class="mytr" style="height:15px !important;">
+                                                  <!-- Insert your Rows here -->                                    
+                                                
+                                            </tr>
+                                        </t>
+                                    </tbody>
+
+		<!-- Put the page repeating footer here -->
+                                    <tfoot>
+                                        <tr class="mydblline mytr">
+		          <!-- Insert your Page Total Footer here -->	
+                                            <td colspan="7" class="text-end mymp0-0 mylbl-10"><strong>Page Total</strong></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-out="'{:,.2f}'.format(ptotal_debit)"/></strong></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-out="'{:,.2f}'.format(ptotal_credit)"/></strong></td>
+                                            <td class="text-end mymp0-0 mytbw-40 mylbl-10"></td>                                        
+                                     
+                                        </tr>
+                                        <tr class="mytr">
+		          <!-- Insert your Grand Total Footer here -->	
+
+                                            <td colspan="7" class="text-end mymp0-0 mylbl-10"><strong>Grand Total</strong></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-out="'{:,.2f}'.format(gtotal_debit)"/></strong></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-out="'{:,.2f}'.format(gtotal_credit)"/></strong></td>
+                                            <td class="text-end mymp0-0 mytbw-40 mylbl-10"></td>                                        
+                                        </tr>
+
+
+                                    </tfoot>    
+                                </table>
+                            </div>
+                        </t>
+                    </t>
+                </t>
+            </t>
+        </template>
+
+        <record id="action_hotel_transactions_report" model="ir.actions.report">
+            <field name="name">Hotel Transactions</field>
+            <field name="model">hotel.transaction.dashboard</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">hotel.report_hoteltransactions</field>
+            <field name="report_file">hotel.report_hoteltransactions</field>
+            <field name="print_report_name">'Hotel Transactions'</field>
+            <field name="binding_model_id" ref="model_hotel_transaction_dashboard"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="hotel.mypaperformat_a4_portrait"/>     
+        </record>   
+    </data>
+</odoo>
+
+#------------------------------------------------------------------------------------------------
+#  myaddons/hotel/report/hoteltransaction.xml - An actual Report Example 
+#-------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="report_hoteltransactions">
+            <t t-call="web.html_container">
+                <t t-call="web.basic_layout">
+
+                    <t t-foreach="docs" t-as="o">
+
+                         <!-- Insert Standard Page Header Here -->
+                        <t t-set="reporttitle" t-value="'Hotel Transactions Summary'"/>
+ 
+                        <t t-call="hotel.report_pageheader"/> 
+                          <!-- Initialize Grand Totals here -->
+
+                          <t t-set="gtotal_debit" t-value="0"/>
+                          <t t-set="gtotal_credit" t-value="0"/>
+                                         
+                         <t t-foreach="o.hotel_transaction_report_pages(65)" t-as="page_lines">
+
+       
+
+                             <!-- Main Content -->
+
+                            <div class="page mypage">   
+                                  
+                                 <!-- Insert Report Specific Page Header here -->
+                                 <div style="margin-top: 32px;">
+                                   
+                                    <div class="row" style="display: flex; align-items: center; width: 100%;">
+                                        <div t-if="o.datefrom_fmt" style="flex: 0 0 25%; max-width: 25%;">
+                                            <strong class="mylbl-10">Date From:</strong>
+                                            <span class="mylbl-12" t-field="o.datefrom_fmt"/>
+                                        </div>
+                                        <div t-if="o.dateto_fmt" style="flex: 0 0 25%; max-width: 25%;">
+                                            <strong class="mylbl-10">Date To:</strong>
+                                            <span class="mylbl-12" t-field="o.dateto_fmt"/>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+
+                                <table class="table table-borderless mymp0-0" style="width:100%; table-layout: fixed; border-collapse: collapse;">
+                                    <thead class="mydblline">
+                                        <tr class="mytr">
+                                             <!---  Insert Column Headers Here  -->
+                                           <th class="text-center mymp0-0 mytbw-40 mylbl-10"> <strong>LN#</strong></th>
+                                           <th class="text-start mymp0-0 mytbw-90 mylbl-10"> <strong>Date</strong></th>
+                                           <th class="text-start mymp0-0 mytbw-150 mylbl-10"><strong>Account Title</strong></th>
+                                           <th class="text-start mymp0-0 mytbw-40 mylbl-10"><strong>Room</strong></th>
+                                           <th class="text-start mymp0-0 mytbw-40 mylbl-10"> <strong>Room Type</strong></th>
+                                           <th class="text-center mymp0-0 mytbw-40 mylbl-10"> <strong>Doc</strong></th>
+                                           <th class="text-end mymp0-0 mytbw-60 mylbl-10 mymr-5"><strong>No.</strong></th>
+                                           <th class="text-end mymp0-0 mytbw-75 mylbl-10"><strong>Debit</strong></th>
+                                           <th class="text-end mymp0-0 mytbw-75 mylbl-10"><strong>Credit</strong></th>                                        
+                                           <th class="text-center mymp0-0 mytbw-40 mylbl-10"><strong>Status</strong></th>
+                                              
+                                        </tr>    
+                                    </thead>
+                                    <tbody>   
+                                         <!-- Initialize your Page Totals here -->
+                            
+                                        <t t-set="ptotal_debit" t-value="0"/>
+                                        <t t-set="ptotal_credit" t-value="0"/>
+                                                                     
+                                        <t t-foreach="page_lines" t-as="line">
+
+                                            <!-- Increment Page and	Grand Totals Here -->
+                                            <t t-set="ptotal_debit" t-value="ptotal_debit + line.debit_amt"/>
+                                            <t t-set="ptotal_credit" t-value="ptotal_credit + line.credit_amt"/>
+                                            <t t-set="gtotal_debit" t-value="gtotal_debit + line.debit_amt"/>
+                                            <t t-set="gtotal_credit" t-value="gtotal_credit + line.credit_amt"/>
+
+
+
+                                            <tr class="mytr" style="height:15px !important;">
+
+                                                <!-- Insert your Rows here -->     
+                                                <td class="text-center mymp0-0 mytbw-40 mylbl-10"><span t-field="line.line_no"/></td>
+                                                <td class="text-start mymp0-0 mytbw-90 mylbl-10"><span t-field="line.dateapplied_ampm"/></td>
+                                                <td class="text-start mymp0-0 mytbw-150 mylbl-10"><span t-field="line.accounttitle"/></td>
+                                                <td class="text-start mymp0-0 mytbw-40 mylbl-10"><span t-field="line.roomname"/></td>
+                                                <td class="text-start mymp0-0 mytbw-40 mylbl-10"><span t-field="line.roomtypename"/></td>
+                                                <td class="text-center mymp0-0 mytbw-40 mylbl-10"><span t-field="line.doc"/></td>
+                                                <td class="text-end mymp0-0 mytbw-60 mylbl-10"><span t-field="line.documentno"/></td>
+                                                <td class="text-end mymp0-0 mytbw-75 mylbl-10 mymr-5"><span t-field="line.debit_amt"/></td>                                                
+                                                <td class="text-end mymp0-0 mytbw-75 mylbl-10"><span t-field="line.credit_amt"/></td>
+                                                <td class="text-end mymp0-0 mytbw-40 mylbl-10"><span t-field="line.state"/></td>                                        
+                                                                                   
+                                                
+                                            </tr>
+                                        </t>
+                                    </tbody>
+
+		                            <!-- Put the page repeating footer here -->
+                                    <tfoot>
+                                        <tr class="mydblline mytr">
+		                                    <!-- Insert your Page Total Footer here -->	
+                                            <td colspan="7" class="text-end mymp0-0 mylbl-10"><strong>Page Total</strong></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-out="'{:,.2f}'.format(ptotal_debit)"/></strong></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-out="'{:,.2f}'.format(ptotal_credit)"/></strong></td>
+                                            <td class="text-end mymp0-0 mytbw-40 mylbl-10"></td>                                        
+                                     
+                                        </tr>
+                                        <tr class="mytr">
+		                                    <!-- Insert your Grand Total Footer here -->	
+
+                                            <td colspan="7" class="text-end mymp0-0 mylbl-10"><strong>Grand Total</strong></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-out="'{:,.2f}'.format(gtotal_debit)"/></strong></td>
+                                            <td class="text-end mymp0-0 mytbw-75 mylbl-10"><strong><t t-out="'{:,.2f}'.format(gtotal_credit)"/></strong></td>
+                                            <td class="text-end mymp0-0 mytbw-40 mylbl-10"></td>                                        
+                                        </tr>
+
+
+                                    </tfoot>    
+                                </table>
+                            </div>
+                        </t>
+                    </t>
+                </t>
+            </t>
+        </template>
+
+        <record id="action_hotel_transactions_report" model="ir.actions.report">
+            <field name="name">Hotel Transactions</field>
+            <field name="model">hotel.transaction.dashboard</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">hotel.report_hoteltransactions</field>
+            <field name="report_file">hotel.report_hoteltransactions</field>
+            <field name="print_report_name">'Hotel Transactions'</field>
+            <field name="binding_model_id" ref="model_hotel_transaction_dashboard"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="hotel.mypaperformat_a4_portrait"/>     
+        </record>   
+    </data>
+</odoo>
+
+#------------------------------------------------------------------------------------------------
+#  myaddons/hotel/views/hoteltransactiondashboard.xml 
+#-------------------------------------------------------------------------------------------------
+
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hotel_transaction_dashboard_form" model="ir.ui.view">
+        <field name="name">hotel.transaction.dashboard.form</field>
+        <field name="model">hotel.transaction.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Hotel Transaction Analysis" create="0" delete="0" options="{'no_open': True}">
+                <header>
+                        <button name="action_refresh_results" 
+                            string="Refresh Data" 
+                            type="object" 
+                            class="btn-primary" 
+                            icon="fa-refresh"/>
+
+                        <button name="%(action_hotel_transactions_report)d"
+                            string="Print Transaction Report"
+                            type="action"
+                            class="btn-primary float-end"
+                            confirm="Print Transaction Report?"
+                            icon="fa-print"/>
+                </header>
+
+                <sheet>
+                 
+                  
+                   <group>
+                        <field name="date_from" string="Date Start"/>
+                        <field name="date_to" string="Date End"/>
+                        <newline/> 
+                    </group>
+                                        <!-- <separator string="Report Results"/> -->
+                    
+                    <field name="report_line_ids" readonly="1">
+                        <list create="0" delete="0" decoration-success="state == 'FINAL'" decoration-muted="state != 'FINAL'" limit="65">
+                            <field name="line_no"/>
+                            <field name="dateapplied_ampm"/>
+                            <field name="accounttitle"/>
+                            <field name="roomname"/>
+                            <field name="roomtypename"/>
+                            <field name="doc"/>
+                            <field name="documentno"/>                            
+                            <field name="accounttitle"/>
+                            <field name="debit_amt" sum="Total Debit"/>
+                            <field name="credit_amt" sum="Total Credit"/>
+                            <field name="state" widget="badge"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_open_hotel_dashboard" model="ir.actions.server">
+        <field name="name">Transaction Dashboard</field>
+        <field name="model_id" ref="model_hotel_transaction_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">
+dashboard = model.search([('user_id', '=', env.uid), ('company_id', '=', env.company.id)], limit=1)
+if not dashboard:
+    dashboard = model.create({'user_id': env.uid, 'company_id': env.company.id})
+
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'hotel.transaction.dashboard',
+    'res_id': dashboard.id,
+    'view_mode': 'form',
+    'target': 'current',
+}
+        </field>
+    </record>
+
+    <menuitem id="menu_hotel_transaction_dashboard" 
+              name="Transaction Dashboard" 
+              parent="hotel.menu_hotel_reports" 
+              action="action_open_hotel_dashboard" 
+              sequence="10"/>
+</odoo>
+
+
+
