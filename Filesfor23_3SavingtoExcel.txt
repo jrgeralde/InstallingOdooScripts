@@ -1,0 +1,74 @@
+#--------------------------------------------------------------------------
+#  Export to Excel - append to guestregistration.py
+#--------------------------------------------------------------------------
+    def action_export_excel(self):
+        self.ensure_one()
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+        sheet = workbook.add_worksheet('Transactions')
+
+        # Formatting
+        title_style = workbook.add_format({'bold': True, 'font_size': 14, 'align': 'center'})
+        header_style = workbook.add_format({'bold': True, 'bg_color': '#4472C4', 'font_color': 'white', 'border': 1})
+        text_style = workbook.add_format({'border': 1})
+        money_style = workbook.add_format({'num_format': '#,##0.00', 'border': 1})
+        date_style = workbook.add_format({'num_format': 'mm-dd-yyyy', 'border': 1})
+
+        # Report Header - Extended to column I now
+        sheet.merge_range('A1:I1', f'Hotel Transaction Report: {self.date_from} to {self.date_to}', title_style)
+
+        # Updated Column Headers
+        headers = [ 'Date', 'Doc.', 'No.', 'Guest Name', 'Room', 'Room Type', 'Account Title', 'Debit', 'Credit' ]
+        
+        # Adjust Column Widths
+        sheet.set_column('A:A', 12) # Date
+        sheet.set_column('B:C', 12) # Doc & No.
+        sheet.set_column('D:D', 35) # Guest Name
+        sheet.set_column('E:E', 10) # Room
+        sheet.set_column('F:F', 18) # Room Type (Added)
+        sheet.set_column('G:G', 25) # Account Title
+        sheet.set_column('H:I', 14) # Debit & Credit
+
+        for col, label in enumerate(headers):
+            sheet.write(2, col, label, header_style)
+
+        # Write Data Lines
+        row = 3
+        for line in self.report_line_ids:
+            sheet.write(row, 0, line.dateapplied or '', date_style)
+            sheet.write(row, 1, line.doc or '', text_style)
+            sheet.write(row, 2, line.documentno or '', text_style)
+            sheet.write(row, 3, line.guestname or '', text_style)
+            sheet.write(row, 4, line.roomname or '', text_style)
+            sheet.write(row, 5, line.roomtypename or '', text_style) # Added: Room Type
+            sheet.write(row, 6, line.accounttitle or '', text_style)
+            sheet.write(row, 7, line.debit_amt or 0.0, money_style)
+            sheet.write(row, 8, line.credit_amt or 0.0, money_style)
+            row += 1
+
+        workbook.close()
+        output.seek(0)
+        
+        file_name = f'Transactions_{self.date_from}_{self.date_to}.xlsx'
+        attachment = self.env['ir.attachment'].create({
+            'name': file_name,
+            'type': 'binary',
+            'datas': base64.b64encode(output.read()).decode('utf-8'),
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        })
+        output.close()
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{attachment.id}?download=true',
+            'target': 'self',
+        }
+
+#-------------------------------------------------------------------------------------------------
+#  Button - included in myaddons/views/hoteltransactiondashboard.xml
+#------------------------------------------------------------------------------------------------
+<button name="action_export_excel" 
+        string="Export Excel" 
+        type="object" 
+        class="btn-secondary" 
+        icon="fa-file-excel-o"/>
