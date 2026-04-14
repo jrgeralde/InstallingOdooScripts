@@ -1,0 +1,193 @@
+#----------------------------------------------------------------------------------------------------------------------------
+#  myaddons/hotel/models/emailguestbill.py  - transient model for sending email messages
+#----------------------------------------------------------------------------------------------------------------------------
+from odoo.exceptions import UserError
+from odoo import models, fields, api, _
+import base64  
+
+class EmailGuestBillWizard(models.TransientModel):
+    _name = 'hotel.email.guestbill.wizard' 
+    _description = 'Email Guest Bill Wizard'
+
+    email_to = fields.Char(string="Recipient Email", required=True, default=lambda self: self._get_default_email_to())
+
+    def _get_default_email_to(self):
+        if self.env.context.get('default_res_id'):
+            guestreg = self.env['hotel.guestregistration'].browse(self.env.context['default_res_id'])
+            return guestreg.guestemail or ''
+        return ''
+    
+    subject = fields.Char(string="Subject", required=True, default="Updated Bill")
+
+    body = fields.Html(
+        string="Message",
+        default="""Dear Guest,<br/><br/>Attached is the updated hotel room bill for your perusal.<br/><br/> Please settle existing balances if you have one and disregard this message if it has already been settled.<br/><br/>Sincerely,<br/><br/><br/>Hotel Management"""
+    )
+
+    res_id = fields.Integer(string="Record ID") 
+
+    def action_send_email(self):
+        self.ensure_one()
+        
+        # 1. Match the XML ID of the report action you just shared
+        report_template = 'hotel.action_report_bill2' 
+        
+        # Generate the PDF
+        pdf_content, content_type = self.env['ir.actions.report'].sudo()._render_qweb_pdf(
+            report_template, [self.res_id]
+        )
+
+        # 2. Create Attachment (Linked to the Guest Registration record)
+        attachment_id = self.env['ir.attachment'].create({
+            'name': 'GuestBill_%s.pdf' % self.res_id,
+            'type': 'binary',
+            'datas': base64.b64encode(pdf_content).decode('utf-8'),
+            'res_model': 'hotel.guestregistration',
+            'res_id': self.res_id,
+            'mimetype': 'application/pdf',
+        })
+
+        # 3. Create and Send Mail
+        mail_values = {
+            'subject': self.subject,
+            'body_html': self.body,
+            'email_to': self.email_to,
+            'email_from': self.env.user.email or 'noreply@yourhotel.com',
+            'attachment_ids': [(6, 0, [attachment_id.id])],
+            'model': 'hotel.guestregistration',
+            'res_id': self.res_id,
+        }
+
+        self.env['mail.mail'].create(mail_values).send()
+
+#----------------------------------------------------------------------------------------------------------------------------
+#  myaddons/hotel/models/__init__.py  
+#----------------------------------------------------------------------------------------------------------------------------
+from . import hotelcompany
+from . import charges
+from . import rooms
+from . import guests
+from . import guestregistration
+from . import hoteldocuments
+from . import roombill, roombillrecord_new
+from . import hoteltransactiondashboard
+from . import emailguestbill
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+#  additional acces rights in myaddons/hotel/security/ir.model.access.csv for the  transient model
+#------------------------------------------------------------------------------------------------------------------------------------
+access_email_guestbill_wizard,hotel.email.guestbill.wizard,model_hotel_email_guestbill_wizard,base.group_user,1,1,1,1
+
+#----------------------------------------------------------------------------------------------------------------------------
+#  myaddons/hotel/wizards/emailguestbill.xml   - the email wizard and action
+#----------------------------------------------------------------------------------------------------------------------------
+<!-- myaddons/hotel/wizards/emailguestbill.xml -->
+<odoo>
+    <record id="view_email_guestbill_wizard_form" model="ir.ui.view">
+        <field name="name">hotel.email.guestbill.wizard.form</field>
+        <field name="model">hotel.email.guestbill.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Send Email">
+                <group>
+                    <field name="email_to"/>
+                    <field name="subject"/>
+                </group>
+                <field name="body" placeholder="Write your message here..."/>
+                <footer>
+                    <button name="action_send_email" string="Send" 
+                       type="object" 
+                       class="btn-primary" 
+                       icon="fa-envelope"/>
+
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Wizard action -->
+    <record id="action_hotel_email_guestbill_wizard" model="ir.actions.act_window">
+        <field name="name">Send Guest Bill via Email</field>
+        <field name="res_model">hotel.email.guestbill.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field> 
+        <field name="view_id" ref="view_email_guestbill_wizard_form"/>
+    </record>
+
+</odoo>
+
+#----------------------------------------------------------------------------------------------------------------------------
+#  The email guest bill button in myyaddons/hotel/views/guestregistration.xml
+#----------------------------------------------------------------------------------------------------------------------------
+
+                                <button name="%(hotel.action_hotel_email_guestbill_wizard)d" 
+                                    string="Email Guest Bill" 
+                                    type="action" 
+                                    class="oe_highlight"
+                                    icon="fa-envelope"
+                                    context="{
+                                        'default_res_id': id, 
+                                        'default_email_to': guest_id.email, 
+                                        'default_subject': 'Updated Room Bill'
+                                    }"/>
+
+#----------------------------------------------------------------------------------------------------------------------------
+#  __manifest__.py
+#----------------------------------------------------------------------------------------------------------------------------
+# -*- coding: utf-8 -*-
+{
+    'name': "hotel",
+    'summary': "Hotel Management System",
+    'description': "Hotel Guest Registration and Billing System",
+    'author': "ROYTEK",
+    'website': "https://johnroygeralde.vercel.app",
+
+    'category': 'Uncategorized',
+    'version': '19.0.1.4.0',
+
+    'depends': ['base', 'web'],
+
+    'license': 'LGPL-3',
+
+    'assets': {
+        'web.report_assets_common': [
+            'hotel/static/src/scss/reportstyles.scss',
+        ],
+    }, 
+
+    # Always loaded data
+    'data': [
+        'reports/paperformats.xml',     # LOAD THIS FIRST
+        'reports/pageheader.xml',
+        'reports/pageheader2.xml',
+        'reports/billheader.xml',
+        'reports/fromtoheader.xml',
+        'reports/guestbill.xml',
+        'reports/guestbill2.xml',   
+        'reports/hoteltransaction.xml',  # accounting report 
+        'reports/hoteltransaction2.xml',  # accounting report 
+        'reports/hoteltransaction3.xml',  # accounting report with guest name
+        'wizards/roombillrecord_edit.xml',        
+        'wizards/roombillrecord_new.xml',
+        'wizards/emailguestbill.xml',  # Wizard for emailing guest bill
+        'security/ir.model.access.csv',
+        'views/mainmenu.xml',
+        'views/guestregistration.xml',
+        'views/guests.xml',         
+        'views/rooms.xml',         
+        'views/roomtypes.xml',   
+        'views/charges.xml', 
+        'views/hoteltransactiondashboard.xml',  # Dashboard report template
+    
+    ],
+
+    'installable': True,
+    'application': True,
+}
+
+
+
+
+
