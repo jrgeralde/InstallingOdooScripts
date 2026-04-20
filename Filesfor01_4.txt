@@ -1,0 +1,75 @@
+1. Inherit Inventory Administrator to Product Manager
+
+  Inventory Models Full Access:
+
+     uom
+     product
+     product category
+     product variant
+
+
+    Price List Rule
+    Price List Report
+    Price List
+
+    Supplier Price List  (Adds a line)
+
+   Inventory Models Read Access:
+
+  Stock Picking - ( for Warehouse Transactions)_
+
+2. Purchasing (user)
+
+   Purchasing Models Read Access:
+
+   Purchase Order
+   Purchase Order Line
+   Purchase Report
+
+   Bill to Purchase
+   Bill Matching
+
+    menus:
+                 Dashboard/Dashboards
+    	Purchase/Orders/Requests for Quotation
+                 Purchase/Orders
+                 Purchase/Orders/Purchase Orders
+                 Purchase
+                 Purchase/Reporting/Purchase
+
+                 Purchase/Configuration/ Vendor Price Lists
+ 
+
+               Override Purchase order records from the user
+   Override Stock Picking Records to prevent receipts of Purchase orders
+
+2. Sales
+
+      Sales Models Read Access:
+
+      Sales Order
+      Sales Order Line
+      Quotation Template
+      Quotation Template Line
+       Quotation Headers and Footers
+
+
+      Full Access
+
+      Price List  (Activate Price list Settings in sales)
+       
+
+    Menus:
+    Sales/Reporting/Sales
+    Sales/Reporting/Salespersons
+   Sales/Configuration/Sales Teams
+   Sales
+   Sales/Orders/Sales Teams
+   Sales/Configuration/Sales Orders
+
+4. Login as prodmgr and Test editing of uom, packaging,products, costing method, Vendor Price Lists, Product Price List
+
+5.  Test opening (Refresh right away- for read only) 
+
+       Contacts, Sales and Purchase orders
+
